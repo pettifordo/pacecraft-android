@@ -1,2 +1,2 @@
-PASS: installed APK, onboarding, demo entry, next-run screen, progress, history, coach, demo isolation in local persistence, demo exit, empty real history.
+PASS: installed APK, onboarding, demo entry, next-run screen, full-plan projection, progress, history, coach, demo isolation in local persistence, demo exit, empty real history.
 Images are unedited screencap output from the running native app.
