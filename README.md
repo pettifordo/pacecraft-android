@@ -4,7 +4,7 @@ An on-device running coach for Android, adapted from [pettifordo/pacecraft](http
 
 ## Try the APK
 
-[Download CoachMeSimple 0.2.1 APK](https://github.com/pettifordo/pacecraft-android/releases/download/v0.2.1-test/CoachMeSimple-0.2.1-test.apk) and send the file to your tester. On their Android phone, open the downloaded file, allow **Install unknown apps** for the app opening it if prompted, and install CoachMeSimple. Android 9 or later is required. The test APK is signed with a development key and is not a Google Play release.
+[Download CoachMeSimple 0.3.0 APK](https://github.com/pettifordo/pacecraft-android/releases/download/v0.3.0-test/CoachMeSimple-0.3.0-test.apk) and send the file to your tester. On their Android phone, open the downloaded file, allow **Install unknown apps** for the app opening it if prompted, and install CoachMeSimple. Android 9 or later is required. The test APK is signed with a development key and is not a Google Play release.
 
 Start with **Explore with sample history** to inspect all five tabs without granting access. Demo history is isolated from real history and edits are disabled while it is active. Exit demo before connecting data or editing settings.
 
@@ -12,6 +12,7 @@ For real data, install/update Health Connect where needed, enable sharing from t
 
 ## Implemented
 
+- Prescribed pace bands in every planned run. Intervals show actual rep count, timed work and jog recoveries, with separate work/recovery paces. Session detail includes warm-up, every rep, and cool-down. Metric and imperial paces convert together.
 - Whole-plan tab: weekly projection through race day (up to 30 weeks), expandable days and session steps, weekly training-volume chart, and a fortnight for goals without a race date. Later sessions are forecasts; they adapt after real runs and check-ins.
 - Next-run prescription, including pace bands, actual structured-step totals, reasons, skip-day and check-in actions.
 - Health Connect running and treadmill sessions, distance, optional heart rate/elevation, plus supported cycling/swimming/rowing/strength cross-training for load.

@@ -14,3 +14,5 @@ Please report phone model, Android version, recording app, steps to reproduce an
 Known testing limits: the app does not record GPS, export workouts to a watch, or sync in the background. Estimates are provisional and training advice should not override pain or feeling unwell.
 
 Whole-plan check: set a future race date, open Plan and verify that the final week ends at that race. Change the session/time limits or record a run: the forecast should rebuild. Without a race date it shows two weeks. Projected runs must never appear as completed history.
+
+Pace/interval check: expand a week in Plan. Each run should show its prescribed pace. Later build/peak weeks can contain **VO₂ intervals**, marked in the week header. Tap one to check the rep count, work duration, jog recovery, warm-up and cool-down. Work and recovery have separate paces. Switch miles on in Settings and check both bands change to min/mi. Base/recovery weeks do not need interval sessions.

@@ -171,20 +171,18 @@ class PrivacyActivity: ComponentActivity() {
             HorizontalDivider(color=Ink.copy(alpha=.20f))
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
                 Column { Text("EST. TIME",color=Ink.copy(alpha=.65f),fontSize=10.sp); Text("${(next.seconds/60).roundToInt()} min",color=Ink,fontWeight=FontWeight.Bold,fontSize=20.sp) }
-                Column { Text("PACE / $unit".uppercase(),color=Ink.copy(alpha=.65f),fontSize=10.sp)
+                Column { Text("${if(next.kind.quality) "WORK PACE" else if(next.kind==Kind.OPENERS) "STRIDE PACE" else "PACE"} / $unit".uppercase(),color=Ink.copy(alpha=.65f),fontSize=10.sp)
                     Text("${Display.pace(f.cs*next.kind.high,imperial)}–${Display.pace(f.cs*next.kind.low,imperial)}",color=Ink,fontWeight=FontWeight.Bold,fontSize=20.sp) }
             }
         }
     }
+    if(next.kind in setOf(Kind.INTERVALS,Kind.OPENERS) || next.steps.any { it.kind==Kind.STEADY && next.kind==Kind.LONG })
+        Panel { PrescriptionSummary(next,f,imperial) }
     OutlinedButton(onClick=viewPlan,modifier=Modifier.fillMaxWidth()) { Text("View whole plan →") }
     Panel { Eyebrow("Why this run"); next.reasons.forEach { Text(it,lineHeight=23.sp) } }
     if(next.steps.isNotEmpty()) Panel {
         Eyebrow("The session")
-        next.steps.forEachIndexed { i,s -> Row(verticalAlignment=Alignment.CenterVertically) {
-            Text("%02d".format(i+1),color=Lime,fontWeight=FontWeight.Bold,modifier=Modifier.width(35.dp))
-            Column(Modifier.weight(1f)) { Text(s.label,fontWeight=FontWeight.Medium); Text("${Display.distance(s.distance,imperial)} $unit · ${Display.time(s.seconds)}",color=Muted,fontSize=12.sp) }
-            Text("${Display.pace(f.cs*s.kind.high,imperial)}–${Display.pace(f.cs*s.kind.low,imperial)}",fontSize=12.sp)
-        } }
+        SessionSteps(next,f,imperial)
     }
     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
         Button(onClick={open("feedback")},modifier=Modifier.weight(1f),enabled=!m.demo) { Text("Check in") }
