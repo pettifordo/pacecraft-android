@@ -16,6 +16,11 @@ def nodes():
     text=adb('shell','cat','/data/local/tmp/watch-ui.xml')
     return list(ET.fromstring(text[text.index('<?xml'):]).iter('node'))
 def find(label):return next((n for n in nodes() if n.get('text')==label),None)
+def wait_for(label):
+    for _ in range(30):
+        if find(label) is not None:return
+        time.sleep(1)
+    raise AssertionError('Watch screen never displayed '+label)
 def tap(label):
     for _ in range(12):
         n=find(label)
@@ -36,7 +41,7 @@ adb('shell','input','keyevent','KEYCODE_WAKEUP');adb('shell','wm','dismiss-keygu
 adb('shell','settings','put','system','screen_off_timeout','1800000')
 for permission in ['ACTIVITY_RECOGNITION','ACCESS_FINE_LOCATION','ACCESS_COARSE_LOCATION','BODY_SENSORS','POST_NOTIFICATIONS']:
     adb('shell','pm','grant',PKG,'android.permission.'+permission)
-adb('shell','am','start','-W','-n',PKG+'/com.pacecraft.wear.WatchActivity');time.sleep(3);capture('watch-onboarding')
+adb('shell','am','start','-W','-n',PKG+'/com.pacecraft.wear.WatchActivity');wait_for('Your next run, on your wrist');capture('watch-onboarding')
 adb('shell','am','force-stop',PKG)
 workout={'schema':1,'id':'emulator-structured-workout','name':'Intervals · test fixture','day':time.strftime('%Y-%m-%d'),'steps':[
     {'label':'Warm up','seconds':600,'metres':1500,'lowSpeed':2.0,'highSpeed':2.8},
@@ -46,7 +51,7 @@ active={'id':'emulator-active','workout':json.dumps(workout),'start':'2026-11-14
 xml='<map><string name="workout">'+escape(json.dumps(workout))+'</string><string name="active">'+escape(json.dumps(active))+'</string></map>'
 p=OUT/'fixture.xml';p.write_text(xml)
 adb('push',str(p),'/data/local/tmp/watch-fixture.xml');adb('shell','run-as',PKG,'mkdir','-p','shared_prefs');adb('shell','run-as',PKG,'cp','/data/local/tmp/watch-fixture.xml','shared_prefs/coach-watch.xml');p.unlink()
-adb('shell','am','start','-W','-n',PKG+'/com.pacecraft.wear.WatchActivity');time.sleep(2);capture('watch-paused')
+adb('shell','am','start','-W','-n',PKG+'/com.pacecraft.wear.WatchActivity');wait_for('Paused');capture('watch-paused')
 tap('Resume');time.sleep(4)
 # Return to the top of the small round display after scrolling to Resume.
 for _ in range(4):adb('shell','input','swipe','220','130','220','330','250')
