@@ -30,6 +30,7 @@ def wait_for(label, prefix=False):
         if node is not None:
             return node
         time.sleep(1)
+    print('Visible labels:', [n.get('text') for n in nodes() if n.get('text')], flush=True)
     raise AssertionError('Screen never displayed: ' + label)
 
 def tap(label, prefix=False):
@@ -76,14 +77,16 @@ for label,heading,name in [('Plan','Your whole plan','plan'), ('Progress','Built
     tap(label)
     wait_for(heading, prefix=True)
     if label == 'Plan':
-        wait_for('Weekly volume')
-    capture(name)
+        scroll_to('WEEKLY VOLUME')
+    if label == 'Plan':
+        scroll_to('Week by week')
+    capture(name,top=(label != 'Plan'))
 
 # Demo data must never replace or enter the real local cache.
 stored = json.loads(adb('exec-out', 'run-as', 'com.pacecraft.android', 'cat', 'files/pacecraft-v1.json'))
 assert stored['runs'] == [] and stored['cross'] == []
 tap('Plan')
-wait_for('Weekly volume')
+scroll_to('WEEKLY VOLUME')
 scroll_to('Expand all')
 tap('Expand all')
 scroll_to('Week 2', prefix=True)
