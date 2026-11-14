@@ -13,11 +13,11 @@ import androidx.compose.ui.unit.dp
 import com.pacecraft.engine.*
 import java.time.*
 
-@Composable private fun Field(value: String, change: (String)->Unit, label: String, numeric: Boolean = false) {
+@Composable fun Field(value: String, change: (String)->Unit, label: String, numeric: Boolean = false) {
     OutlinedTextField(value,onValueChange=change,label={Text(label)},singleLine=true,modifier=Modifier.fillMaxWidth(),
         keyboardOptions=KeyboardOptions(keyboardType=if(numeric) KeyboardType.Decimal else KeyboardType.Text))
 }
-@Composable private fun Toggle(label: String, value: Boolean, change: (Boolean)->Unit) {
+@Composable fun Toggle(label: String, value: Boolean, change: (Boolean)->Unit) {
     Row(Modifier.fillMaxWidth(),verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) { Text(label,Modifier.weight(1f)); Switch(value,onCheckedChange=change) }
 }
 private fun parseTime(text: String): Double? {
@@ -94,6 +94,8 @@ private fun parseTime(text: String): Double? {
     var minutes by remember { mutableStateOf(c.maxMinutes?.toString() ?: "") }; var imperial by remember { mutableStateOf(m.saved.imperial) }
     var treadmill by remember { mutableStateOf(c.treadmillOnly) }; var merge by remember { mutableStateOf(p.mergeDuplicates) }
     var birth by remember { mutableStateOf(p.birthYear?.toString() ?: "") }; var resting by remember { mutableStateOf(p.restingHeartRate?.toString() ?: "") }
+    var cross by remember { mutableStateOf(p.countsCrossTraining) };var rhrDelta by remember{mutableStateOf(p.restingHRDelta?.toString()?:"")};var hrvDelta by remember{mutableStateOf(p.hrvDelta?.let{(it*100).toString()}?:"")}
+    var extra by remember{mutableStateOf<String?>(null)}
     var maxHr by remember { mutableStateOf(p.observedMaxHeartRate?.toString() ?: "") }
     var error by remember { mutableStateOf<String?>(null) }; var erase by remember { mutableStateOf(false) }
     AlertDialog(onDismissRequest=close,title={Text("Make room for running")},text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(10.dp)) {
@@ -112,8 +114,16 @@ private fun parseTime(text: String): Double? {
         Toggle("Show miles and min/mile",imperial,{imperial=it})
         Toggle("Treadmill only",treadmill,{treadmill=it})
         Toggle("Merge duplicate recordings",merge,{merge=it})
+        Toggle("Include cross-training fatigue",cross,{cross=it})
+        TextButton(onClick={extra="dates"}){Text("One-off unavailable dates")}
+        TextButton(onClick={extra="starter"}){Text("Starting ability / run-walk plan")}
+        ReminderSetting(m)
         Text("Optional heart-rate profile",color=Lime)
         Field(birth,{birth=it},"Birth year",true); Field(resting,{resting=it},"Resting heart rate (bpm)",true); Field(maxHr,{maxHr=it},"Observed maximum heart rate (bpm)",true)
+        Field(rhrDelta,{rhrDelta=it},"Resting HR change vs baseline (bpm)",true)
+        Field(hrvDelta,{hrvDelta=it},"HRV change vs baseline (%)",true)
+        Text("Optional baseline overrides. Otherwise, permitted Health Connect resting HR and HRV use 3 recent days against at least 7 baseline days. Clear overrides when they no longer apply.",color=Muted)
+        TextButton(onClick={extra="help"}){Text("Help, glossary & watch setup")}
         TextButton(onClick=connect,enabled=!m.demo) { Text("Manage Health Connect access") }
         TextButton(onClick={context.startActivity(Intent(context,PrivacyActivity::class.java))}) { Text("Privacy & how data is used") }
         TextButton(onClick={m.showDemo(!m.demo);close()}) { Text(if(m.demo) "Exit sample history" else "Explore sample history") }
@@ -128,9 +138,12 @@ private fun parseTime(text: String): Double? {
             birth.isNotBlank() && (year==null || year !in (LocalDate.now().year-100)..LocalDate.now().year-13) -> "Enter a valid birth year (age 13–100)."
             resting.isNotBlank() && (rest==null || rest !in 25.0..120.0) -> "Resting heart rate must be 25–120 bpm."
             maxHr.isNotBlank() && (hr==null || hr !in 100.0..230.0) -> "Maximum heart rate must be 100–230 bpm."
+            rhrDelta.isNotBlank() && (rhrDelta.toDoubleOrNull()?.let{it.isFinite()&&it in -50.0..50.0}!=true) -> "Resting HR change must be −50 to 50 bpm."
+            hrvDelta.isNotBlank() && (hrvDelta.toDoubleOrNull()?.let{it.isFinite()&&it in -100.0..200.0}!=true) -> "HRV change must be −100 to 200%."
             else -> null }
-        if(error==null) { m.saveConstraints(Constraints(sessions.toInt(),intensity.toInt(),blocked,longDay=longDay,maxWeekly=w?.times(1000),maxMinutes=mins,treadmillOnly=treadmill),imperial,Profile(year,rest,hr,merge));close() }
+        if(error==null) { m.saveConstraints(Constraints(sessions.toInt(),intensity.toInt(),blocked,longDay=longDay,maxWeekly=w?.times(1000),maxMinutes=mins,treadmillOnly=treadmill),imperial,Profile(year,rest,hr,merge,cross,rhrDelta.toDoubleOrNull(),hrvDelta.toDoubleOrNull()?.div(100)));close() }
     },enabled=!m.demo) { Text("Save settings") }},dismissButton={TextButton(onClick=close) { Text("Close") }})
+    when(extra){"dates"->UnavailableDialog(m,{extra=null});"starter"->StarterDialog(m,{extra=null});"help"->HelpDialog({extra=null})}
     if(erase) AlertDialog(onDismissRequest={erase=false},title={Text("Clear local CoachMeSimple data?")},text={Text("Deletes cached runs, manual runs, feedback, goals and preferences from this phone. Health Connect originals are untouched.")},
         confirmButton={TextButton(onClick={m.erase();erase=false;close()}) { Text("Clear data") }},dismissButton={TextButton(onClick={erase=false}) { Text("Cancel") }})
 }

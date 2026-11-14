@@ -5,3 +5,7 @@ local.properties
 *.jks
 *.keystore
 .idea/
+
+__pycache__/
+emulator-screenshots/
+watch-screenshots/

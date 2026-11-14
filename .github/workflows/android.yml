@@ -20,15 +20,20 @@ jobs:
           packages: 'platform-tools platforms;android-36 build-tools;35.0.0'
       - uses: gradle/actions/setup-gradle@v4
       - name: Test, lint, and build APK
-        run: ./gradlew :engine:test :app:lintDebug :app:assembleDebug
+        run: ./gradlew :engine:test :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :wear:testDebugUnitTest :wear:lintDebug :wear:assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: CoachMeSimple-test-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            wear/build/outputs/apk/debug/wear-debug.apk
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-reports
           path: |
             engine/build/reports/tests/test/
+            app/build/reports/tests/
+            wear/build/reports/tests/
+            wear/build/reports/lint-results-debug.html
             app/build/reports/lint-results-debug.html

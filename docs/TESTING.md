@@ -11,7 +11,7 @@
 
 Please report phone model, Android version, recording app, steps to reproduce and expected/actual behaviour. Screenshots of the app and import message help; avoid sharing raw health records unless you choose to.
 
-Known testing limits: the app does not record GPS, export workouts to a watch, or sync in the background. Estimates are provisional and training advice should not override pain or feeling unwell.
+Additional 0.4 checks: start without history and inspect Run/Walk steps; preview a shorter session and reset it; block a one-off date; share a plan PDF and calendar; opt into reminders; review target feasibility and history recaps. The phone does not record GPS; the separate Wear companion does. See [watch testing](WEAR_OS.md). Real paired-watch transfer, GPS/heart rate and battery behaviour require physical devices. Estimates are provisional; do not override pain or feeling unwell.
 
 Whole-plan check: set a future race date, open Plan and verify that the final week ends at that race. Change the session/time limits or record a run: the forecast should rebuild. Without a race date it shows two weeks. Projected runs must never appear as completed history.
 

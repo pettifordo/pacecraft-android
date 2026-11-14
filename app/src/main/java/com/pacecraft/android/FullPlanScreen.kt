@@ -41,6 +41,7 @@ import kotlin.math.*
     val fitness=m.result!!.fitness!!
     var expanded by remember(plan) { mutableStateOf(setOfNotNull(plan.weeks.firstOrNull()?.start)) }
     var selected by remember(plan) { mutableStateOf<Session?>(null) }
+    PlanExportActions(m,plan,fitness)
     Panel {
         Eyebrow("A forecast that adapts")
         Text("Only the next run is a prescription. Later sessions assume you complete each run as written, using your current fitness and updated training load.",fontSize=13.sp,lineHeight=20.sp,color=Muted)

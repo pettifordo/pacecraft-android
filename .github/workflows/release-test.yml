@@ -17,7 +17,7 @@ jobs:
           packages: 'platform-tools platforms;android-36 build-tools;35.0.0'
       - uses: gradle/actions/setup-gradle@v4
       - name: Validate and build
-        run: ./gradlew :engine:test :app:lintDebug :app:assembleDebug
+        run: ./gradlew :engine:test :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :wear:testDebugUnitTest :wear:lintDebug :wear:assembleDebug
       - name: Prepare test download
         run: |
           version=$(sed -nE 's/.*versionName = "([^"]+)".*/\1/p' app/build.gradle.kts)
@@ -25,8 +25,9 @@ jobs:
           echo "TEST_VERSION=$version" >> "$GITHUB_ENV"
           mkdir artifacts
           cp app/build/outputs/apk/debug/app-debug.apk "artifacts/CoachMeSimple-$version-test.apk"
+          cp wear/build/outputs/apk/debug/wear-debug.apk "artifacts/CoachMeSimple-Wear-$version-test.apk"
           cd artifacts
-          sha256sum "CoachMeSimple-$version-test.apk" > "CoachMeSimple-$version-test.apk.sha256"
+          sha256sum *.apk > SHA256SUMS
       - name: Publish prerelease
         env:
           GH_TOKEN: ${{ github.token }}

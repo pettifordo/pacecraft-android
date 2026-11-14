@@ -30,7 +30,7 @@ object FullPlanProjector {
         samples: List<Run>, goal: Goal, constraints: Constraints, profile: Profile,
         fitness: Fitness, initialLoad: Load, records: List<SessionRecord>,
         feedback: List<Feedback> = emptyList(), crossTraining: List<CrossTraining> = emptyList(),
-        now: Instant, zone: ZoneId,
+        now: Instant, zone: ZoneId, starter: StarterProfile? = null, firstOverride: Session? = null,
     ): FullPlan {
         val today = now.atZone(zone).toLocalDate()
         val futureRace = goal.raceDate?.takeIf { it >= today }
@@ -44,7 +44,9 @@ object FullPlanProjector {
         var load = initialLoad
         for (iteration in 0 until MAXIMUM_DAYS) {
             if (cursor.atZone(zone).toLocalDate() > through) break
-            val next = Planner.next(virtualSamples,goal,constraints,fitness,load,virtualHistory,feedback,cursor,zone)
+            val next = if(iteration==0 && firstOverride!=null) firstOverride else if(starter!=null)
+                StarterEngine.next(virtualSamples,goal,constraints,profile,fitness,load,virtualHistory,feedback,starter,cursor,zone)
+                else Planner.next(virtualSamples,goal,constraints,fitness,load,virtualHistory,feedback,cursor,zone)
             // The planner can jump across unavailable days and full weeks. Check its chosen date.
             if (next.day > through || (projected.lastOrNull()?.day?.let { next.day <= it } == true)) break
             projected += next
@@ -56,7 +58,8 @@ object FullPlanProjector {
                 virtualHistory += SessionRecord(next,runId=assumed.id)
             }
             cursor = next.day.plusDays(1).atStartOfDay(zone).toInstant()
-            load = LoadModel.evaluate(virtualSamples,crossTraining,fitness,profile,cursor,zone)
+            load = if(starter!=null) StarterEngine.load(virtualSamples,crossTraining,fitness,profile,starter,cursor,zone)
+                else LoadModel.evaluate(virtualSamples,if(profile.countsCrossTraining) crossTraining else emptyList(),fitness,profile,cursor,zone)
         }
         val weeks = mutableListOf<PlanWeek>()
         var monday = today.monday()

@@ -5,6 +5,7 @@ import kotlin.math.*
 
 object Cleaner {
     fun usable(r: Run) = r.distance.isFinite() && r.duration.isFinite() && r.distance >= 1000 && r.duration > 0 && r.speed in 1.6..7.0
+    fun startingLoadUsable(r:Run)=r.distance.isFinite() && r.duration.isFinite() && r.distance>=100 && r.duration>=60 && r.speed in .4..7.0
     fun effort(r: Run) = usable(r) && !r.indoor && (r.ascent ?: 0.0) / (r.distance / 1000) <= 20
     fun same(a: Run, b: Run, zone: ZoneId): Boolean {
         if (a.day(zone) != b.day(zone)) return false
@@ -12,9 +13,9 @@ object Cleaner {
         return overlap > 0 && overlap / min(a.duration, b.duration) >= .90
     }
     private fun richness(r: Run) = (if (r.heartRate != null) 2 else 0) + (if (r.ascent != null) 1 else 0) + (if (r.movingDuration != null) 1 else 0)
-    fun clean(runs: List<Run>, zone: ZoneId, merge: Boolean = true): List<Run> {
+    fun clean(runs: List<Run>, zone: ZoneId, merge: Boolean = true, allowRunWalk: Boolean = false): List<Run> {
         val kept = mutableListOf<Run>()
-        runs.filter(::usable).sortedWith(compareBy<Run> { it.start }.thenBy { it.id }).forEach { r ->
+        runs.filter { usable(it) || allowRunWalk && startingLoadUsable(it) }.sortedWith(compareBy<Run> { it.start }.thenBy { it.id }).forEach { r ->
             val last = kept.lastOrNull()
             if (merge && last != null && same(last, r, zone)) {
                 if (r.distance > last.distance * 1.1 || (last.distance <= r.distance * 1.1 && richness(r) > richness(last))) kept[kept.lastIndex] = r
@@ -127,14 +128,16 @@ object LoadModel {
         val start = day.monday().minusWeeks(offset.toLong()); val end = start.plusWeeks(1)
         runs.filter { it.day(zone) >= start && it.day(zone) < end }.sumOf { it.distance }
     }
-    fun evaluate(runs: List<Run>, cross: List<CrossTraining>, f: Fitness, p: Profile, now: Instant, zone: ZoneId): Load {
+    fun evaluate(runs: List<Run>, cross: List<CrossTraining>, f: Fitness, p: Profile, now: Instant, zone: ZoneId,
+                 startingDailyLoad: Double = 0.0): Load {
         val today = now.atZone(zone).toLocalDate()
         val dayLoads = mutableMapOf<LocalDate, Double>()
         runs.forEach { dayLoads.merge(it.day(zone), session(it, f, p, now, zone), Double::plus) }
         val validCross = cross.filter { it.duration in 600.0..21600.0 && it.start <= now }
         validCross.forEach { dayLoads.merge(it.start.atZone(zone).toLocalDate(), cross(it, p, now, zone), Double::plus) }
         val series = (41 downTo 0).map { dayLoads[today.minusDays(it.toLong())] ?: 0.0 }
-        val chronic = series.sum() / 42
+        // A self-reported starting schedule can supply a conservative load prior, never fake runs.
+        val chronic = max(series.sum() / 42, startingDailyLoad.coerceAtLeast(0.0))
         val acute = (0..2).map { offset -> series.subList(max(0, series.size - offset - 7), series.size - offset).sum() / 7 }.average()
         val ratio = if (chronic > 1e-6) acute / chronic else 1.0
         val complete = calendar(runs, today, zone, 7).dropLast(1)
@@ -144,6 +147,8 @@ object LoadModel {
         fun raise(level: Flag, reason: String) { flag = maxOf(flag, level); reasons += reason }
         when { ratio >= 1.5 -> raise(Flag.RED, "Recent training load is a long way ahead of your base.")
             ratio >= 1.3 -> raise(Flag.AMBER, "Recent training load is running ahead of your base.") }
+        p.restingHRDelta?.let { if(it>=6) raise(Flag.RED,"Resting heart rate is above your training baseline; ease off.") else if(it>=3) raise(Flag.AMBER,"Resting heart rate is a little above your training baseline.") }
+        p.hrvDelta?.let { if(it < -.20) raise(Flag.RED,"Heart-rate variability is below your training baseline; ease off.") else if(it < -.10) raise(Flag.AMBER,"Heart-rate variability is below your training baseline.") }
         when { ramp >= .20 -> raise(Flag.RED, "Weekly distance has jumped too far in one step.")
             ramp >= .12 -> raise(Flag.AMBER, "Weekly distance is climbing quickly.") }
         val weeks = calendar(runs, today, zone, 20).dropLast(1).reversed()

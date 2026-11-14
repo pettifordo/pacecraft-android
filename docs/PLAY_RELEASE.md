@@ -12,3 +12,9 @@ Intended owner account: **pettifordo@gmail.com**. No Google account credentials 
 8. Test first-run permissions, denied/revoked/partial access, missing provider, cross-vendor workout data, offline operation, daylight-saving dates, accessibility/large text, upgrades and data deletion on real phones before widening the rollout.
 
 A Play-signed production build may require uninstalling this debug-signed test app first. This clears local CoachMeSimple data; health originals can be imported again. A proper upgrade path requires consistent production signing from the first release.
+
+## Wear and health permissions
+
+Create a Wear OS form-factor release using `:wear:bundleRelease`, signed with the same production certificate/package as the phone app. Increment both version codes together and review Wear quality requirements. The phone targets API 36; the Wear companion currently targets API 35. Recheck current form-factor-specific Play deadlines before publishing.
+
+Review the new optional resting-HR/HRV and background Health Connect permissions, notifications, foreground health/location service declarations and Wear sensor/location permissions. The public draft [privacy policy](PRIVACY.md) must match the final release and Play Data safety answers; complete any required Health Connect/background access review. Physical Pixel Watch/Galaxy Watch checks are still required.

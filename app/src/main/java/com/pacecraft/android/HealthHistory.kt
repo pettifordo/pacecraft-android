@@ -12,7 +12,7 @@ import androidx.health.connect.client.records.metadata.DataOrigin
 import com.pacecraft.engine.*
 import java.time.*
 
-data class ImportedHistory(val runs: List<Run>, val cross: List<CrossTraining>, val historyAccess: Boolean, val missingDistances: Int)
+data class ImportedHistory(val runs: List<Run>, val cross: List<CrossTraining>, val historyAccess: Boolean, val missingDistances: Int,val rhrChange:Double?=null,val hrvChange:Double?=null)
 class HealthHistory(private val context: Context) {
     fun status() = HealthConnectClient.getSdkStatus(context)
     private val client get() = HealthConnectClient.getOrCreate(context)
@@ -21,11 +21,19 @@ class HealthHistory(private val context: Context) {
         HealthPermission.getReadPermission(DistanceRecord::class),
         HealthPermission.getReadPermission(HeartRateRecord::class),
         HealthPermission.getReadPermission(ElevationGainedRecord::class),
+        HealthPermission.getReadPermission(RestingHeartRateRecord::class),
+        HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class),
     )
-    fun permissions(): Set<String> = basicPermissions + if (historySupported()) setOf(HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY) else emptySet()
+    fun permissions(): Set<String> = basicPermissions + (if (historySupported()) setOf(HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY) else emptySet()) + (if(backgroundSupported())setOf(HealthPermission.PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND)else emptySet())
+    fun backgroundSupported() = status()==HealthConnectClient.SDK_AVAILABLE && client.features.getFeatureStatus(HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_IN_BACKGROUND)==HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
     fun historySupported() = status() == HealthConnectClient.SDK_AVAILABLE && client.features.getFeatureStatus(
         HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_HISTORY) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
     suspend fun granted(): Set<String> = if(status() == HealthConnectClient.SDK_AVAILABLE) client.permissionController.getGrantedPermissions() else emptySet()
+    private suspend fun <T:Record> all(type:kotlin.reflect.KClass<T>,start:Instant,end:Instant):List<T>{
+        val result=mutableListOf<T>();var token:String?=null
+        do{val page=client.readRecords(ReadRecordsRequest(type,timeRangeFilter=TimeRangeFilter.between(start,end),pageToken=token,pageSize=500));result+=page.records;token=page.pageToken}while(token!=null)
+        return result
+    }
     suspend fun read(now: Instant): ImportedHistory {
         val granted = granted()
         check(HealthPermission.getReadPermission(ExerciseSessionRecord::class) in granted && HealthPermission.getReadPermission(DistanceRecord::class) in granted) {
@@ -77,6 +85,19 @@ class HealthHistory(private val context: Context) {
                 if(candidate.duration > prior.duration) uniqueCross[uniqueCross.lastIndex]=candidate
             } else uniqueCross += candidate
         }
-        return ImportedHistory(runs,uniqueCross,hasHistory,missing)
+        val recentStart=now.minusSeconds(3*86400L)
+        val baselineStart=now.minusSeconds(31*86400L)
+        fun delta(samples:List<Pair<Instant,Double>>,fraction:Boolean):Double? {
+            val recent=samples.filter{it.first>=recentStart}.groupBy{it.first.atZone(ZoneId.systemDefault()).toLocalDate()}.values.map{day->day.map{it.second}.average()}
+            val baseline=samples.filter{it.first<recentStart}.groupBy{it.first.atZone(ZoneId.systemDefault()).toLocalDate()}.values.map{day->day.map{it.second}.average()}
+            if(recent.isEmpty()||baseline.size<7)return null
+            val b=baseline.average();if(b<=0)return null
+            return if(fraction) recent.average()/b-1 else recent.average()-b
+        }
+        val rhr=if(HealthPermission.getReadPermission(RestingHeartRateRecord::class) in granted)
+            all(RestingHeartRateRecord::class,baselineStart,now).map{it.time to it.beatsPerMinute.toDouble()} else emptyList()
+        val hrv=if(HealthPermission.getReadPermission(HeartRateVariabilityRmssdRecord::class) in granted)
+            all(HeartRateVariabilityRmssdRecord::class,baselineStart,now).map{it.time to it.heartRateVariabilityMillis} else emptyList()
+        return ImportedHistory(runs,uniqueCross,hasHistory,missing,delta(rhr,false),delta(hrv,true))
     }
 }

@@ -30,7 +30,7 @@ import com.pacecraft.engine.*
                 Text(if(timed) "${Display.time(step.seconds)} · approx. ${Display.distance(step.distance,imperial)} $unit"
                     else "${Display.distance(step.distance,imperial)} $unit · about ${Display.time(step.seconds)}",
                     color=Muted,fontSize=12.sp)
-                Text(SessionDescription.pace(step.kind,fitness,imperial),color=Muted,fontSize=12.sp)
+                Text(SessionDescription.pace(step.kind,fitness,imperial,step.paceScale),color=Muted,fontSize=12.sp)
             }
         }
     }

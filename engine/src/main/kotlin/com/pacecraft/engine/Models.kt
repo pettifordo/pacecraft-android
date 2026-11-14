@@ -4,7 +4,7 @@ import java.time.*
 import java.time.temporal.TemporalAdjusters
 import kotlin.math.*
 
-const val ENGINE_VERSION = "android-0.1.0"
+const val ENGINE_VERSION = "android-0.4.0"
 const val HALF = 21097.5
 const val MARATHON = 42195.0
 internal fun Instant.ageDays(now: Instant) = Duration.between(this, now).toMillis() / 86400000.0
@@ -22,7 +22,8 @@ data class Run(
 data class CrossTraining(val id: String, val start: Instant, val duration: Double,
                          val strength: Boolean = false, val heartRate: Double? = null)
 data class Profile(val birthYear: Int? = null, val restingHeartRate: Double? = null,
-                   val observedMaxHeartRate: Double? = null, val mergeDuplicates: Boolean = true) {
+                   val observedMaxHeartRate: Double? = null, val mergeDuplicates: Boolean = true,
+                   val countsCrossTraining: Boolean = true, val restingHRDelta: Double? = null, val hrvDelta: Double? = null) {
     fun maxHeartRate(now: Instant, zone: ZoneId): Double? {
         val estimated = birthYear?.let { 211 - 0.64 * (now.atZone(zone).year - it).coerceAtLeast(0) }
         return listOfNotNull(estimated, observedMaxHeartRate).maxOrNull()
@@ -47,9 +48,10 @@ enum class Kind(val label: String, val low: Double, val high: Double, val qualit
     REST("Rest", 0.0, 0.0), RECOVERY("Recovery", .62, .72), EASY("Easy run", .72, .82),
     LONG("Long run", .72, .82), STEADY("Steady run", .85, .90, true),
     MARATHON_PACE("Marathon pace", .88, .94, true), THRESHOLD("Threshold", .97, 1.03, true),
-    INTERVALS("VO₂ intervals", 1.05, 1.15, true), OPENERS("Race openers", 1.15, 1.28), RACE("Race", .95, 1.10)
+    INTERVALS("VO₂ intervals", 1.05, 1.15, true), OPENERS("Race openers", 1.15, 1.28), RACE("Race", .95, 1.10), HILLS("Hill repeats",1.05,1.15,true),
+    PROGRESSION("Progression run",.85,.90,true), STRIDES("Easy + strides",.72,.82), WALK("Walk",.35,.55)
 }
-data class Step(val label: String, val seconds: Double, val distance: Double, val kind: Kind)
+data class Step(val label: String, val seconds: Double, val distance: Double, val kind: Kind, val paceScale: Double = 1.0)
 data class Session(val id: String, val day: LocalDate, val kind: Kind, val phase: Phase,
                    val steps: List<Step>, val weeklyTarget: Double, val reasons: List<String>) {
     val distance get() = steps.sumOf { it.distance }
@@ -70,7 +72,7 @@ data class Prediction(val seconds: Double, val low: Double, val high: Double, va
                       val confidence: Confidence, val caveats: List<String>, val beyondEvidence: Boolean)
 data class Result(val runs: List<Run>, val sufficiency: Sufficiency, val fitness: Fitness? = null,
                   val load: Load? = null, val prediction: Prediction? = null, val next: Session? = null,
-                  val comments: List<String> = emptyList())
+                  val comments: List<String> = emptyList(), val bootstrapMode: Boolean = false)
 object Display {
     fun time(seconds: Double): String {
         val s = seconds.roundToInt().coerceAtLeast(0)

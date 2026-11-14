@@ -70,7 +70,7 @@ class PrivacyActivity: ComponentActivity() {
                 Text("Your runs. Your device.",style=MaterialTheme.typography.headlineLarge,fontWeight=FontWeight.Bold)
                 if(intent.getBooleanExtra("unavailable",false)) Text("Health Connect is unavailable on this device. You can still add runs manually or explore the demo.")
                 Text("CoachMeSimple reads exercise sessions and distance to understand your running history. Optional heart rate and elevation help assess effort. History access allows up to 26 weeks of data, instead of the default limited window.")
-                Text("Your data is stored only on this phone. There is no account, advertising, analytics, AI service or app network permission. Android cloud backup is disabled. Health Connect controls the data supplied by your recording apps.")
+                Text("Your history is stored privately on this phone. Selected workouts and completed watch runs can transfer to your paired Wear OS watch through Google Play services. There is no CoachMeSimple account, advertising, analytics or AI service. Android cloud backup is disabled. Health Connect controls the data supplied by your recording apps.")
                 Text("You can revoke access in Health Connect. When the app checks permissions again, it removes its imported cache if exercise or distance permission is missing. Clear local data in Settings to delete all cached runs, feedback and preferences. This does not delete the original health records.")
                 Text("The coach uses deterministic rules. Training estimates are uncertain and are not medical advice. Stop and seek appropriate advice if you have pain or feel unwell.")
                 Text("Testing build · ${BuildConfig.VERSION_NAME}",color=Muted)
@@ -113,7 +113,7 @@ class PrivacyActivity: ComponentActivity() {
             when(tab) {
                 0 -> NextScreen(model,{dialog=it},connect,{tab=1})
                 1 -> FullPlanScreen(model,{dialog="goal"})
-                2 -> ProgressScreen(model)
+                2 -> ProgressScreen(model,{dialog="goal"})
                 3 -> HistoryScreen(model,{dialog="run"},connect)
                 4 -> CoachScreen(model,{dialog="feedback"})
             }
@@ -121,6 +121,10 @@ class PrivacyActivity: ComponentActivity() {
         }
     }
     when(dialog) {
+        "starter" -> StarterDialog(model,{dialog=null})
+        "adjust" -> AdjustmentDialog(model,{dialog=null})
+        "dates" -> UnavailableDialog(model,{dialog=null})
+        "help" -> HelpDialog({dialog=null})
         "goal" -> GoalDialog(model,{dialog=null})
         "settings" -> SettingsDialog(model,connect,{dialog=null})
         "run" -> RunDialog(model,{dialog=null})
@@ -154,31 +158,35 @@ class PrivacyActivity: ComponentActivity() {
             Text("${Display.distance(s?.distance ?: 0.0,imperial)} / ${Display.distance(40000.0,imperial)} $unit of usable running",color=Muted)
             Text(r?.comments?.firstOrNull() ?: "Enough evidence makes for a more honest estimate.",color=Muted,lineHeight=21.sp)
         }
+        Button(onClick={open("starter")},enabled=!m.demo,modifier=Modifier.fillMaxWidth()){Text("Start without run history")}
         TextButton(onClick={m.showDemo(!m.demo)},modifier=Modifier.fillMaxWidth()) { Text(if(m.demo) "Leave demo" else "Explore with sample history →") }
         TextButton(onClick={open("goal")},enabled=!m.demo) { Text("Set your race goal") }
         return
     }
     val f=r.fitness!!
+    if(r.bootstrapMode) Panel { Eyebrow("Starting plan");Text("Provisional paces from your ability. Run/walk steps count toward the session time.");TextButton(onClick={open("starter")},enabled=!m.demo){Text("Update starting ability")} }
     Heading(if(next.kind==Kind.REST) "Let the work\nsink in." else "Make this\none count.","${next.day.format(DateTimeFormatter.ofPattern("EEEE, d MMM"))} · ${next.phase.name.lowercase().replace('_',' ')} phase")
     Column(Modifier.fillMaxWidth().background(Lime,RoundedCornerShape(26.dp)).padding(24.dp),verticalArrangement=Arrangement.spacedBy(18.dp)) {
         Row(verticalAlignment=Alignment.CenterVertically) {
             Text("YOUR NEXT RUN",color=Ink,fontSize=11.sp,letterSpacing=2.sp,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f))
             Icon(if(next.kind==Kind.REST) Icons.Default.FavoriteBorder else Icons.Default.ArrowForward,null,tint=Ink)
         }
-        Text(next.kind.label,color=Ink,fontSize=28.sp,fontWeight=FontWeight.Bold)
+        Text(if(next.steps.any{it.kind==Kind.WALK})"Run / walk" else next.kind.label,color=Ink,fontSize=28.sp,fontWeight=FontWeight.Bold)
         Text(if(next.kind==Kind.REST) "Rest day" else "${Display.distance(next.distance,imperial)} $unit",color=Ink,fontSize=51.sp,fontWeight=FontWeight.Bold,letterSpacing=(-2).sp)
         if(next.kind!=Kind.REST) {
             HorizontalDivider(color=Ink.copy(alpha=.20f))
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
                 Column { Text("EST. TIME",color=Ink.copy(alpha=.65f),fontSize=10.sp); Text("${(next.seconds/60).roundToInt()} min",color=Ink,fontWeight=FontWeight.Bold,fontSize=20.sp) }
                 Column { Text("${if(next.kind.quality) "WORK PACE" else if(next.kind==Kind.OPENERS) "STRIDE PACE" else "PACE"} / $unit".uppercase(),color=Ink.copy(alpha=.65f),fontSize=10.sp)
-                    Text("${Display.pace(f.cs*next.kind.high,imperial)}–${Display.pace(f.cs*next.kind.low,imperial)}",color=Ink,fontWeight=FontWeight.Bold,fontSize=20.sp) }
+                    Text("${Display.pace(f.cs*next.kind.high*(next.steps.firstOrNull{it.kind==next.kind}?.paceScale?:1.0),imperial)}–${Display.pace(f.cs*next.kind.low*(next.steps.firstOrNull{it.kind==next.kind}?.paceScale?:1.0),imperial)}",color=Ink,fontWeight=FontWeight.Bold,fontSize=20.sp) }
             }
         }
     }
-    if(next.kind in setOf(Kind.INTERVALS,Kind.OPENERS) || next.steps.any { it.kind==Kind.STEADY && next.kind==Kind.LONG })
+    if(next.kind!=Kind.REST)
         Panel { PrescriptionSummary(next,f,imperial) }
     OutlinedButton(onClick=viewPlan,modifier=Modifier.fillMaxWidth()) { Text("View whole plan →") }
+    if(next.kind!=Kind.REST) OutlinedButton(onClick={open("adjust")},enabled=!m.demo,modifier=Modifier.fillMaxWidth()){Text("Adjust length, pace or day")}
+    WorkoutActions(m,next,f)
     Panel { Eyebrow("Why this run"); next.reasons.forEach { Text(it,lineHeight=23.sp) } }
     if(next.steps.isNotEmpty()) Panel {
         Eyebrow("The session")
@@ -197,7 +205,7 @@ class PrivacyActivity: ComponentActivity() {
         }
     }
 }
-@Composable fun ProgressScreen(m: CoachViewModel) {
+@Composable fun ProgressScreen(m: CoachViewModel,editGoal:()->Unit) {
     val r=m.result; val p=r?.prediction; val f=r?.fitness; val load=r?.load; val imperial=m.saved.imperial
     Eyebrow("The bigger picture")
     Heading("Built on\nyour running.","Fitness, fatigue and race estimates from your own history.")
@@ -209,6 +217,7 @@ class PrivacyActivity: ComponentActivity() {
         Text("${f.confidence.name.lowercase().replaceFirstChar { it.uppercase() }} confidence · ${f.effortCount} frontier ${if(f.effortCount == 1) "effort" else "efforts"}",color=Lime,fontSize=13.sp)
         m.saved.goal.targetSeconds?.let { Text("Target ${Display.time(it)} · ${if(p.seconds<=it) "currently supported" else "ahead of current estimate"}",color=Muted) }
     }
+    GoalProgress(m,editGoal)
     Panel {
         Eyebrow("Weekly distance · rolling 7-day windows")
         val values=load.weekly
@@ -252,7 +261,7 @@ class PrivacyActivity: ComponentActivity() {
             Icon(Icons.Default.PlayArrow,null,tint=Lime,modifier=Modifier.padding(end=14.dp))
             Column(Modifier.weight(1f)) { Text(run.day(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("EEE, d MMM")),fontWeight=FontWeight.Medium)
                 Text("${Display.time(run.duration)} · ${Display.pace(run.speed,imperial)} / $unit",color=Muted,fontSize=12.sp)
-                if(!Cleaner.usable(run)) Text("Excluded from engine · outside cleaning limits",color=Color(0xFFFFC795),fontSize=11.sp)
+                if(!Cleaner.usable(run)) Text(if(m.saved.starter!=null&&Cleaner.startingLoadUsable(run))"Run/walk · starting-plan load only" else "Excluded from engine · outside cleaning limits",color=Color(0xFFFFC795),fontSize=11.sp)
             }
             Text("${Display.distance(run.distance,imperial)} $unit",fontWeight=FontWeight.Bold)
         }
@@ -261,9 +270,13 @@ class PrivacyActivity: ComponentActivity() {
         Text("${run.day(ZoneId.systemDefault())} · ${Display.distance(run.distance,imperial)} $unit · ${Display.time(run.duration)}")
         Text("Source: ${run.source}"); run.heartRate?.let { Text("Average heart rate: ${it.roundToInt()} bpm") }
         run.ascent?.let { Text("Ascent: ${it.roundToInt()} m") }; Text(if(run.indoor) "Indoor · load only" else "Outdoor")
-        val rec=m.saved.records.firstOrNull { it.runId==run.id }; if(rec!=null) Text("Matched to ${rec.session.kind.label} on ${rec.session.day}")
+        val rec=m.saved.records.firstOrNull { it.runId==run.id }; if(rec!=null) {
+            Text("Matched to ${rec.session.kind.label} on ${rec.session.day}")
+            Text("${(100*run.distance/rec.session.distance.coerceAtLeast(1.0)).roundToInt()}% of prescribed distance · actual ${Display.pace(run.speed,imperial)} / $unit")
+            m.result?.fitness?.let{f->Text(if(run.speed>f.cs*Kind.EASY.high&&rec.session.kind in setOf(Kind.EASY,Kind.LONG,Kind.RECOVERY))"This was faster than the current easy-pace ceiling. Keep easy days comfortable." else "Run recorded. Your next session reflects the updated training load.")}
+        }
         if(run.id.startsWith("hc:")) Text("Imported records are managed by Health Connect. Refresh replaces the cache.",color=Muted)
-    }},confirmButton={TextButton(onClick={selected=null}) { Text("Done") }},dismissButton={if(run.id.startsWith("manual:")&&!m.demo) TextButton(onClick={m.deleteRun(run.id);selected=null}) { Text("Delete run") }}) }
+    }},confirmButton={TextButton(onClick={selected=null}) { Text("Done") }},dismissButton={if((run.id.startsWith("manual:")||run.id.startsWith("wear:"))&&!m.demo) TextButton(onClick={m.deleteRun(run.id);selected=null}) { Text("Delete run") }}) }
 }
 @Composable fun CoachScreen(m: CoachViewModel, checkIn: ()->Unit) {
     Eyebrow("Clear advice. No AI required.")
@@ -272,5 +285,5 @@ class PrivacyActivity: ComponentActivity() {
     if(m.result?.comments.isNullOrEmpty()) Panel { Text("Connect or add your run history to get training comments.") }
     Button(onClick=checkIn,enabled=!m.demo,modifier=Modifier.fillMaxWidth()) { Text("How are you feeling?") }
     if(m.saved.feedback.isNotEmpty()&&!m.demo) Panel { Eyebrow("Latest check-in"); val f=m.saved.feedback.last(); Text("Energy ${f.energy}/5 · soreness ${f.soreness}/5${if(f.niggle) " · niggle reported" else ""}"); if(f.note.isNotBlank()) Text(f.note,color=Muted) }
-    Panel { Icon(Icons.Default.Lock,null,tint=Lime); Text("Private by design",fontWeight=FontWeight.Bold); Text("Your history and feedback stay on your phone. Every training number is calculated locally.",color=Muted,lineHeight=21.sp) }
+    Panel { Icon(Icons.Default.Lock,null,tint=Lime); Text("Private by design",fontWeight=FontWeight.Bold); Text("Every training number is calculated locally. Watch transfer and file sharing happen through the actions you choose.",color=Muted,lineHeight=21.sp) }
 }

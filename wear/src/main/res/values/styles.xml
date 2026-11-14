@@ -1,0 +1,1 @@
+<resources><style name="WatchTheme" parent="android:style/Theme.DeviceDefault.NoActionBar"><item name="android:windowActionModeOverlay">true</item><item name="android:colorAccent">#D4F76A</item><item name="android:windowBackground">#101713</item></style></resources>

@@ -1,13 +1,16 @@
-CoachMeSimple Android **0.3.0 test build** makes the prescriptions visible in the whole plan. Download the APK below and send it to your Android tester.
+CoachMeSimple Android **0.4.0 test build** adds starting plans, plan controls, exports and a Wear OS companion.
 
-- Every planned run shows its prescribed pace band in min/km or min/mi.
-- Interval rows show the actual rep count, work duration and jog recovery, with separate pace bands for work and recovery.
-- Tap a run for warm-up, every work/recovery step and cool-down, with times, estimated distances and paces.
-- Weeks containing interval sessions are marked **Includes intervals**. The engine already schedules intervals where phase, load and recovery permit; this build exposes those prescriptions.
-- Long runs with a steady finish show separate easy and finish paces.
+Download **CoachMeSimple-0.4.0-test.apk** for an Android phone. **CoachMeSimple-Wear-0.4.0-test.apk** is a separate companion for a paired Pixel Watch / Galaxy Watch / Wear OS watch.
 
-The Plan tab projects through race day (up to 30 weeks), or two weeks for undated goals. Only the next run is the prescription; later sessions adapt with your real history and check-ins. No projected runs enter real history or fitness estimation.
+- Start without six weeks of history: ability-based run/walk and continuous plans, recovery weeks, provisional pace bands and graduation to historical fitness. Slow run/walk sessions affect starting-plan load without creating race fitness evidence.
+- Whole plan with prescribed paces, uniform intervals or peak ladders, threshold cruise blocks, hills, progression runs and strides, subject to phase, workload and recovery.
+- Adjust next-session length, pace and day with a load/limits preview; reset to the engine recommendation. Add one-off unavailable dates.
+- Goal feasibility, target trajectory and recent adherence, with practical options when behind the target.
+- Share the full projected plan as PDF, next week as calendar events, or a structured workout as JSON.
+- Optional morning reminders, completion notifications and daily history refresh where Health Connect background access is granted.
+- Optional resting-HR and HRV baseline changes from Health Connect; cross-training fatigue toggle; help and richer run recaps.
+- Send a structured workout to the matching Wear companion. The watch has timed steps, separate work/recovery pace targets, pause/resume, GPS and optional heart rate, durable completion transfer and phone-history import. No measured distance means no invented run.
 
-Requires Android 9+. This is a development-signed test build: uninstall an older test build first if Android reports a signing conflict. Uninstalling clears local CoachMeSimple data but leaves Health Connect originals untouched.
+Phone: Android 9+. Watch: Wear OS 3+ with Google Play services. Install both APKs from this release so their development signatures match. Test signatures may differ from older releases; uninstall an older test build if Android reports a conflict. Uninstalling clears its local data, retaining Health Connect originals.
 
-Regression checks cover pace conversion, interval totals/recovery placement, and actual interval scheduling in short-race blocks. Emulator checks exercise the plan and an interval detail screen. Real-phone Health Connect interoperability still needs tester feedback. See [porting notes](https://github.com/pettifordo/pacecraft-android/blob/main/docs/PORTING.md), [testing instructions](https://github.com/pettifordo/pacecraft-android/blob/main/docs/TESTING.md), and the [Google Play guide](https://github.com/pettifordo/pacecraft-android/blob/main/docs/PLAY_RELEASE.md).
+The pure engine and transfer/state tests cover 67 cases; both modules pass Android lint. Emulator results and any device-only gaps are tracked in [PARITY.md](https://github.com/pettifordo/pacecraft-android/blob/main/docs/PARITY.md). **Paired physical-watch transfer, real GPS/heart rate, cross-vendor Health Connect and battery behaviour still require hardware testing.** This is a sideload testing release; it is not published on Google Play. The Android planner follows the same policy with documented implementation differences, not byte-for-byte Swift prescription parity.

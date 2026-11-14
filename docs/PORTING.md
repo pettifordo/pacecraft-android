@@ -1,38 +1,31 @@
 # Port scope and provenance
 
-Based on `pettifordo/pacecraft` commit `496e1c19287ca55956a32da2df2f4c4501d9991f` (inspected 14 November 2026). Source licence is retained in `LICENSE`.
+Based on `pettifordo/pacecraft` commit `496e1c19287ca55956a32da2df2f4c4501d9991f` (inspected 14 November 2026). Source licence is retained in `LICENSE`. Feature coverage and hardware verification are tracked in [PARITY.md](PARITY.md).
 
-## Analysis port
+## Analysis
 
-The Kotlin analysis follows the actual CoachKit implementation, which differs from some older prose specifications: a 90% shorter-record overlap duplicate test; weighted linear CS/D′ fit with 50–500 m D′ guard and R² ≥ .95; best-effort prior fallback; maximal-only endurance fit; current sparse-effort threshold of three; continuous goal demands shared by prediction/planning; capped durability and sigma; 42-day mean chronic load and three-placement seven-day acute mean; complete calendar weeks for structural ramp; overload thresholds of 1.30/1.50 and .12/.20. Underload is not an overload flag.
+The Kotlin analysis follows CoachKit's actual implementation: 90% shorter-record overlap duplicate test; weighted linear CS/D′ fit with 50–500 m D′ guard and R² ≥ .95; best-effort prior fallback; maximal-only endurance fit; sparse-effort threshold of three; continuous goal demands; capped durability and sigma; 42-day mean chronic load and three-placement seven-day acute mean; complete calendar weeks for structural ramp; overload thresholds of 1.30/1.50 and .12/.20. Underload is not an overload flag. Equal-performance frontier ties retain the newest observation.
 
-Equal-distance/equal-speed frontier ties retain the newest observation, so repeated identical performances do not eliminate one another.
+Time and timezone are injected and session IDs are deterministic. Tests verify analytical outputs and regression scenarios; they do not establish byte-for-byte equivalence with the Swift suite, which has not been run here.
 
-Tests verify known analytical outputs and regression scenarios inspired by CoachKit. They do not establish byte-for-byte parity with the Swift suite, which has not been run on this machine. Time and timezone are injected into the engine, and session IDs are derived deterministically.
+## Planning and starting plans
 
-## Android planner adaptations
+Android uses a smaller implementation of the same policy than the source's roughly 3,000 lines of planning. Scheduling, limits, safety/check-ins, weekly budgets, long-run reservation, goal demands, phase scoring, taper, recovery and down weeks apply. Session families include hills, strides, progression, threshold cruise blocks, uniform intervals and peak ladders, with work/recovery paces and all bookends inside the budget. Template sizing and scoring can choose different prescriptions from Swift. Recent long/hard runs can be inferred from distance/pace without a matched prescription; layoff handling is simpler.
 
-The Android planner is a smaller implementation of the same policy, not a line-for-line port of the ~3,000 lines of Swift planning code. It implements scheduling constraints, history reconciliation, safety/feedback priority, weekly budgets, long-run reservation, goal demands, phase scoring, recovery, taper, down weeks and bounded session structures.
+Self-report supplies a provisional starting fitness and conservative load prior, never synthetic history or a race prediction. Starting run/walk samples have a separate low-speed cleaning boundary for load/scheduling. Race-fitness evidence retains the ordinary cleaning boundary. The full history sufficiency gate and outdoor fitness evidence graduate the runner to measured coaching. Reported ability does not override recovery flags.
 
-Current differences/gaps:
+Goal feasibility uses bounded improvement scenarios and uncertainty credit; trajectory uses a saved baseline, target and race date. These are training scenarios, not promises. Session adjustments preview date, time, weekly distance/count, recent-session ceilings, hard-run spacing and projected load. Raw and adjusted prescriptions remain separately resettable.
 
-- No hills, strides or progression session families; intervals use three-minute repeats, and threshold uses a bounded continuous block. The full Swift template ladder, session tweaks and diary export are not ported.
-- Completed long runs can be inferred from distance, and recent hard runs from pace, when there is no recorded matched prescription. Matching is same-day and within 30% distance (minimum 1 km tolerance). This is an initial reconciliation policy and needs testing against real watch data.
-- Return-to-training budget uses a simpler layoff reduction. Goal-time comments compare the current estimate to the target; the full Swift feasibility and trajectory model is not yet ported. Goal time never forces unsafe training.
-- The source's resting-HR/HRV deviation signals are not ingested. The optional heart-rate profile supports maximal-effort classification and TRIMP, not illness detection.
-- The Health Connect adapter does not import routes, kilometre splits, pause events or resting-HR/HRV baselines. Elapsed workout time is used. Distance/heart-rate/elevation aggregates are scoped to the workout writer to avoid combining duplicate sources. Apps writing distance under another package may produce skipped sessions; the import reports this instead of guessing distance.
-- Cross-training types are explicitly limited to supported aerobic and strength families. No wearable workout export, background sync, notifications, Android Auto or Google Assistant integration.
-- No network permission. Local app storage is not backed up. No run data leaves the phone via this app.
-- A sufficient history still needs usable outdoor efforts to fit fitness; treadmill-only history is retained for load/history but cannot anchor race estimates. The original bootstrap questionnaire is not ported.
+## Forecast and history
 
-Future work should port additional Swift regression fixtures before claiming prescription parity, then validate cross-vendor Health Connect data and Play Health Connect policy compliance on real devices.
+The whole plan repeatedly assumes each next prescription is completed and recalculates fatigue at fixed current fitness. Virtual runs stay inside the projection. Future race plans end on race day, capped at 210 days; undated/past goals show a fortnight. Weekly charts include completed current-week runs and exclude race distance from training volume. Only the first session is a current prescription.
 
-## Whole-plan view (Android 0.2.0)
+History matches prescriptions by date and distance (30%, minimum 1 km tolerance). Real-vendor data needs validation. The Health Connect adapter paginates 26 weeks, uses source-scoped distance/HR/elevation aggregates and imports supported aerobic/strength cross-training. Optional resting HR/HRV use three recent days against at least seven baseline days; manual changes override them. Revoked required read permissions remove the imported cache. Routes, kilometre splits and pause events are not imported; elapsed session time is used. Source apps writing distance under another package produce reported skipped sessions, never guessed distance.
 
-The Plan tab follows the iPhone SessionProjector model: repeatedly prescribe the next session, assume it is completed, and recalculate load before choosing the next. Fitness is held fixed, and the assumed runs stay in a separate in-memory projection. They never enter Health Connect, the local real-run cache, or the fitness fit. Only the first session is a prescription.
+## Android and Wear OS
 
-A future race date projects through that date, capped at 210 calendar days like the iPhone. Undated or past goals show a fortnight. The week summary includes distance already recorded in the initial partial week and excludes the race from the training-volume chart. Each week expands into days; each projected session opens its steps and rationale. A race-date marker stays visible even if constraints or safety prevent a race prescription. Inputs changing invalidate the forecast, and projection work runs off the UI thread. Demo mode includes a sample twelve-week race goal without changing the real saved goal.
+Android sharing exports PDF, a seven-day calendar snapshot and versioned structured-workout JSON. WorkManager provides approximate morning reminders and daily refresh if background history access is granted; Android can delay execution. Foreground imports also produce opted-in completion notifications.
 
-## Pace and interval presentation (Android 0.3.0)
+The Wear companion replaces Apple WorkoutKit with a CoachMeSimple step timer, pace targets, foreground GPS/optional heart-rate capture and durable paired-device transfer. Both packages use `com.pacecraft.android` and must share their signing certificate. The selected workout is frozen for an active run. Process death preserves a paused snapshot and requires visible resume. GPS distance is measured, never copied from the prescription; missing distance requires manual entry on the phone. Watch data commits to a durable phone inbox before acknowledgement, then imports by stable ID. The phone app does not record its own GPS route.
 
-Plan rows expose the same prescribed pace bands as session steps. An interval session is displayed as timed repetitions with separate work and jog-recovery bands, never an average pace mixing the two. The current engine's three-minute reps/two-minute jogs remain subject to its 24-minute quality cap, time/volume budget, phase and safety filters. The formatter derives rep counts from actual steps. The interval detail screen includes all warm-up/recovery/cool-down steps and labels distances for timed steps as approximate. Fast-finish long runs show both easy and steady-finish bands.
+No AI backend, accounts or analytics. Explicit sharing and Wear Data Layer transfer can move selected data off the phone. Android cloud backup/device transfer is excluded on both modules. Apple-only Siri/iCloud/WorkoutKit surfaces are replaced where relevant by Android sharing, notifications and the Wear companion; Android Auto/Assistant, maps/splits, and cross-platform cloud sync are outside this release. Physical watch pairing, GPS/HR quality, battery behaviour and vendor Health Connect interoperability remain hardware checks before publication.
