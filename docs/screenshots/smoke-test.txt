@@ -1,2 +1,3 @@
-PASS: installed APK, onboarding, demo entry, next-run screen, full-plan projection, progress, history, coach, demo isolation in local persistence, demo exit, empty real history.
+PASS: installed APK, onboarding, demo entry, next-run screen, full-plan projection with prescribed paces, interval reps and recovery paces, progress, history, coach, demo isolation in local persistence, demo exit, empty real history.
+PASS: PDF/calendar sharing, starter onboarding, run/walk steps, adjustment preview, persistence and exactly-once completed-watch-run inbox import.
 Images are unedited screencap output from the running native app.
