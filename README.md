@@ -52,7 +52,7 @@ APK: `app/build/outputs/apk/debug/app-debug.apk`. CI builds are downloadable und
 - `docs/TESTING.md`: friend-testing instructions.
 - `docs/PLAY_RELEASE.md`: publishing later using `pettifordo@gmail.com`.
 
-This is a broad Android testing release. Read the [parity checklist](docs/PARITY.md) and porting notes before comparing prescriptions across platforms. Physical paired-watch GPS/HR, battery behaviour and real-vendor Health Connect need device testing; the Android planner is not a byte-for-byte Swift port.
+This is a broad Android testing release. Read the [parity checklist](docs/PARITY.md), [engine synchronization plan](docs/ENGINE_SYNC.md) and porting notes before comparing prescriptions across platforms. Physical paired-watch GPS/HR, battery behaviour and real-vendor Health Connect need device testing; the Android planner is not a byte-for-byte Swift port.
 
 ## Emulator screenshots
 
