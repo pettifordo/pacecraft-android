@@ -81,6 +81,8 @@ class PrivacyActivity: ComponentActivity() {
 @Composable fun PacecraftApp(model: CoachViewModel, connect: ()->Unit) {
     var tab by remember { mutableIntStateOf(0) }
     var dialog by remember { mutableStateOf<String?>(null) }
+    val pageScroll = rememberScrollState()
+    LaunchedEffect(tab, model.demo) { pageScroll.scrollTo(0) }
     val owner=LocalLifecycleOwner.current
     DisposableEffect(owner) {
         val observer=LifecycleEventObserver { _,event -> if(event==Lifecycle.Event.ON_RESUME) model.refresh() }
@@ -96,7 +98,7 @@ class PrivacyActivity: ComponentActivity() {
                 colors=NavigationBarItemDefaults.colors(selectedIconColor=Ink,indicatorColor=Lime,selectedTextColor=Lime,unselectedIconColor=Muted,unselectedTextColor=Muted)) }
         }
     }) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(horizontal=22.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(18.dp)) {
+        Column(Modifier.fillMaxSize().padding(padding).padding(horizontal=22.dp).verticalScroll(pageScroll),verticalArrangement=Arrangement.spacedBy(18.dp)) {
             Row(Modifier.fillMaxWidth().padding(top=10.dp),verticalAlignment=Alignment.CenterVertically) {
                 Icon(Icons.Default.PlayArrow,null,tint=Lime,modifier=Modifier.size(27.dp)); Spacer(Modifier.width(8.dp))
                 Text("pacecraft",fontSize=25.sp,fontWeight=FontWeight.Bold,letterSpacing=(-1).sp,modifier=Modifier.weight(1f))
