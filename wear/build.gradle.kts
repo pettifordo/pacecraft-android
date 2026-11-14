@@ -2,7 +2,7 @@ plugins { id("com.android.application"); kotlin("android"); id("org.jetbrains.ko
 android {
     namespace = "com.pacecraft.wear"
     compileSdk = 36
-    defaultConfig { applicationId = "com.pacecraft.android"; minSdk = 30; targetSdk = 35; versionCode = 6; versionName = "0.4.0" }
+    defaultConfig { applicationId = "com.pacecraft.android"; minSdk = 30; targetSdk = 35; versionCode = 100006; versionName = "0.4.0" }
     sourceSets["main"].java.srcDir("../shared/src/main/java")
     buildFeatures { compose = true; buildConfig = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }

@@ -33,7 +33,7 @@ import kotlin.math.roundToInt
     val r=m.result?:return;val base=r.next?:return;val f=r.fitness?:return;val load=r.load?:return
     var length by remember{mutableIntStateOf(0)};var speed by remember{mutableIntStateOf(0)};var days by remember{mutableIntStateOf(0)}
     val a=SessionAdjustment(length,speed,days)
-    val preview=remember(a,base){SessionAdjuster.preview(base,a,r.runs,f,load,m.saved.trainingProfile(),m.saved.constraints,m.saved.feedback,Instant.now(),ZoneId.systemDefault(),if(m.saved.profile.countsCrossTraining)m.saved.cross else emptyList())}
+    val preview=remember(a,base){SessionAdjuster.preview(base,a,r.runs,f,load,m.saved.trainingProfile(),m.saved.constraints,m.saved.feedback,Instant.now(),ZoneId.systemDefault(),if(m.saved.profile.countsCrossTraining)m.saved.cross else emptyList(),starter=if(r.bootstrapMode)m.saved.starter else null)}
     AlertDialog(onDismissRequest=close,title={Text("Adjust this session")},text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         Text("Preview the consequences before applying. Extra work is refused when it breaches your limits or recovery flags.",color=Muted)
         AdjustmentControl("Length · $length steps (10% each)",{length=(length-1).coerceAtLeast(-5)},{length=(length+1).coerceAtMost(5)})

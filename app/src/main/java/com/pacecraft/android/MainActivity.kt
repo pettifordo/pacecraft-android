@@ -83,7 +83,7 @@ class PrivacyActivity: ComponentActivity() {
     var tab by remember { mutableIntStateOf(0) }
     var dialog by remember { mutableStateOf<String?>(null) }
     val pageScroll = rememberScrollState()
-    LaunchedEffect(tab, model.demo) { pageScroll.scrollTo(0) }
+    LaunchedEffect(tab, model.demo, model.result?.bootstrapMode) { pageScroll.scrollTo(0) }
     val owner=LocalLifecycleOwner.current
     DisposableEffect(owner) {
         val observer=LifecycleEventObserver { _,event -> if(event==Lifecycle.Event.ON_RESUME) model.refresh() }
@@ -209,14 +209,15 @@ class PrivacyActivity: ComponentActivity() {
     val r=m.result; val p=r?.prediction; val f=r?.fitness; val load=r?.load; val imperial=m.saved.imperial
     Eyebrow("The bigger picture")
     Heading("Built on\nyour running.","Fitness, fatigue and race estimates from your own history.")
-    if(p==null || f==null || load==null) { Panel { Text("Your progress will appear once there is enough usable outdoor running history."); Text("At least 8 runs, 6 weeks and 40 km.",color=Muted) }; return }
-    Panel {
+    if(f==null || load==null) { Panel { Text("Your progress will appear once there is enough usable outdoor running history."); Text("At least 8 runs, 6 weeks and 40 km.",color=Muted) }; return }
+    if(p!=null) Panel {
         Eyebrow(if(p.beyondEvidence) "Race hypothesis · beyond evidence" else "Current race estimate")
         Text(Display.time(p.seconds),fontSize=52.sp,fontWeight=FontWeight.Bold,letterSpacing=(-2).sp)
         Text("80% band · ${Display.time(p.low)} – ${Display.time(p.high)}",color=Muted)
         Text("${f.confidence.name.lowercase().replaceFirstChar { it.uppercase() }} confidence · ${f.effortCount} frontier ${if(f.effortCount == 1) "effort" else "efforts"}",color=Lime,fontSize=13.sp)
         m.saved.goal.targetSeconds?.let { Text("Target ${Display.time(it)} · ${if(p.seconds<=it) "currently supported" else "ahead of current estimate"}",color=Muted) }
     }
+    if(p==null) Panel { Eyebrow("Building your history");Text("${r?.sufficiency?.count?:0} / 8 usable runs · ${"%.1f".format(r?.sufficiency?.weeks?:0.0)} / 6 weeks");Text("${Display.distance(r?.sufficiency?.distance?:0.0,imperial)} / ${Display.distance(40000.0,imperial)} ${if(imperial)"mi" else "km"}");Text("Starting paces are provisional. Real run/walk sessions inform training load; race estimates wait for sufficient outdoor running evidence.",color=Muted) }
     GoalProgress(m,editGoal)
     Panel {
         Eyebrow("Weekly distance · rolling 7-day windows")
@@ -238,11 +239,11 @@ class PrivacyActivity: ComponentActivity() {
         if(load.ratio<.8) Text("Less recent training is shown separately from overload.",color=Muted,fontSize=13.sp)
     }
     Panel {
-        Eyebrow("Your engine")
+        Eyebrow(if(r.bootstrapMode)"Provisional starting engine" else "Your engine")
         Row { Stat("Critical pace / ${if(imperial) "mi" else "km"}",Display.pace(f.cs,imperial),Modifier.weight(1f)); Stat("Endurance exponent","%.2f".format(f.exponent),Modifier.weight(1f)) }
         Text("Paces and estimates come from a Critical Speed / D′ model. A lower endurance exponent means less predicted fade as distance increases.",color=Muted,fontSize=13.sp,lineHeight=20.sp)
     }
-    if(p.caveats.isNotEmpty()) Panel { Eyebrow("Read with the estimate"); p.caveats.forEach { Text(it,color=Muted,fontSize=13.sp,lineHeight=20.sp) } }
+    if(p!=null && p.caveats.isNotEmpty()) Panel { Eyebrow("Read with the estimate"); p.caveats.forEach { Text(it,color=Muted,fontSize=13.sp,lineHeight=20.sp) } }
 }
 @Composable fun HistoryScreen(m: CoachViewModel, add: ()->Unit, connect: ()->Unit) {
     val runs=if(m.demo) m.result?.runs.orEmpty() else m.saved.runs.sortedByDescending { it.start }

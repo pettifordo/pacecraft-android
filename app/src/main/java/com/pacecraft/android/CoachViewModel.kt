@@ -135,7 +135,7 @@ class CoachViewModel(application: Application): AndroidViewModel(application) {
     fun adjust(preview:AdjustmentPreview) { if(preview.allowed) { val base=result?.next?:return;change{it.copy(override=preview.session,overrideBase=it.overrideBase?:base.id)} } }
     fun unavailableDates(dates:Set<LocalDate>)=change{it.copy(constraints=it.constraints.copy(blackoutDates=dates),override=null,overrideBase=null)}
     fun saveGoal(goal: Goal) = change { state ->
-        val current=result?.fitness?.let { fitness ->
+        val current=result?.takeUnless{it.bootstrapMode}?.fitness?.let { fitness ->
             val now=Instant.now()
             val longest=state.runs.filter { java.time.Duration.between(it.start,now).toDays() in 0..56 }.maxOfOrNull { it.distance } ?: 0.0
             Predictor.predict(goal.distance,fitness,longest,LoadModel.rolling(state.runs,now,4).average()).seconds

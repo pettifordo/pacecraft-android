@@ -15,6 +15,6 @@ A Play-signed production build may require uninstalling this debug-signed test a
 
 ## Wear and health permissions
 
-Create a Wear OS form-factor release using `:wear:bundleRelease`, signed with the same production certificate/package as the phone app. Increment both version codes together and review Wear quality requirements. The phone targets API 36; the Wear companion currently targets API 35. Recheck current form-factor-specific Play deadlines before publishing.
+Create a Wear OS form-factor release using `:wear:bundleRelease`, signed with the same production certificate/package as the phone app. Use distinct, increasing version codes for phone and Wear uploads (the test uses phone `6`, Wear `100006`), and increment them for each release and review Wear quality requirements. The phone targets API 36; the Wear companion currently targets API 35. Recheck current form-factor-specific Play deadlines before publishing.
 
 Review the new optional resting-HR/HRV and background Health Connect permissions, notifications, foreground health/location service declarations and Wear sensor/location permissions. The public draft [privacy policy](PRIVACY.md) must match the final release and Play Data safety answers; complete any required Health Connect/background access review. Physical Pixel Watch/Galaxy Watch checks are still required.

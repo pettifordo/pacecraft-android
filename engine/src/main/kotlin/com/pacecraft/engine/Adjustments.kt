@@ -7,7 +7,7 @@ data class SessionAdjustment(val length:Int=0,val speed:Int=0,val days:Int=0)
 data class AdjustmentPreview(val session:Session,val allowed:Boolean,val notes:List<String>,val projectedRatio:Double?)
 object SessionAdjuster {
     fun preview(base:Session,adjustment:SessionAdjustment,runs:List<Run>,fitness:Fitness,load:Load,profile:Profile,
-                constraints:Constraints,feedback:List<Feedback>,now:Instant,zone:ZoneId,cross:List<CrossTraining> = emptyList()):AdjustmentPreview {
+                constraints:Constraints,feedback:List<Feedback>,now:Instant,zone:ZoneId,cross:List<CrossTraining> = emptyList(),starter:StarterProfile?=null):AdjustmentPreview {
         if(base.kind==Kind.REST) return AdjustmentPreview(base,false,listOf("A rest day cannot be turned into extra training."),null)
         val distanceFactor=1.10.pow(adjustment.length.coerceIn(-20,20));val speedFactor=1.025.pow(adjustment.speed.coerceIn(-20,20))
         val day=base.day.plusDays(adjustment.days.coerceIn(-14,14).toLong())
@@ -28,7 +28,8 @@ object SessionAdjuster {
         val moved=day.atStartOfDay(zone).toInstant()
         if((base.kind.quality || speedFactor*base.kind.high>.85) && runs.any{it.start<moved && Duration.between(it.start,moved).toHours()<48 && it.speed>=fitness.cs*.85}) problems+="Keep 48 hours between hard efforts."
         val assumed=Run("adjustment",moved,proposed.distance,proposed.seconds,source="Adjustment preview")
-        val after=LoadModel.evaluate(runs+assumed,cross,fitness,profile,day.plusDays(1).atStartOfDay(zone).toInstant().minusSeconds(1),zone)
+        val clock=day.plusDays(1).atStartOfDay(zone).toInstant().minusSeconds(1)
+        val after=if(starter!=null)StarterEngine.load(runs+assumed,cross,fitness,profile,starter,clock,zone) else LoadModel.evaluate(runs+assumed,cross,fitness,profile,clock,zone)
         if(adds && after.ratio>=1.5) problems+="The projected load ratio would reach the red zone."
         val notes=if(problems.isNotEmpty()) problems else buildList {
             add("${Display.distance(proposed.distance)} km · ${Display.time(proposed.seconds)} · projected load ratio %.2f".format(after.ratio))
