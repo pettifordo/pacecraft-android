@@ -2,7 +2,7 @@ name: Android emulator screenshots
 on:
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   screenshots:
     runs-on: ubuntu-latest
@@ -26,7 +26,7 @@ jobs:
       - uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
-          target: aosp_atd
+          target: google_apis
           arch: x86_64
           profile: pixel_2
           emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim -camera-back none
@@ -37,3 +37,14 @@ jobs:
         with:
           name: pacecraft-emulator-screenshots
           path: emulator-screenshots/
+      - name: Save verified screenshots to the repository
+        run: |
+          mkdir -p docs/screenshots
+          cp emulator-screenshots/* docs/screenshots/
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/screenshots
+          if ! git diff --cached --quiet; then
+            git commit -m 'Save Android emulator screenshots and smoke-check result'
+            git push origin HEAD:main
+          fi
