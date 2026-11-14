@@ -1,4 +1,4 @@
-First Android testing build of Pacecraft. Download **pacecraft-0.1.0-test.apk** below and send it directly to your tester.
+Android testing build of Pacecraft. Download the **APK** below and send it directly to your tester.
 
 - Requires Android 9 or later. Allow installation from the browser/file app opening the APK when Android asks.
 - Start with **Explore with sample history**, or exit demo and connect Health Connect / enter completed runs manually.
@@ -10,3 +10,5 @@ Validation: 34 engine tests (including 360 goal/constraint combinations), Androi
 See [testing instructions](https://github.com/pettifordo/pacecraft-android/blob/main/docs/TESTING.md) and [porting limitations](https://github.com/pettifordo/pacecraft-android/blob/main/docs/PORTING.md). Google Play publication and production signing are separate later steps; [release guide](https://github.com/pettifordo/pacecraft-android/blob/main/docs/PLAY_RELEASE.md) is included.
 
 This APK uses a development signing key. A future build signed with a different key requires uninstalling this one first, which clears local Pacecraft data; Health Connect originals remain intact.
+
+Version 0.1.1 improves status-bar contrast on the dark theme and corrects singular effort-count wording.

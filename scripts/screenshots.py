@@ -39,6 +39,8 @@ def tap(label, prefix=False):
     time.sleep(1)
 
 def capture(name):
+    adb('shell', 'input', 'swipe', '540', '350', '540', '1550', '300')
+    time.sleep(1)
     adb('shell', 'screencap', '-p', '/data/local/tmp/pacecraft.png')
     adb('pull', '/data/local/tmp/pacecraft.png', str(OUT / (name + '.png')))
     assert (OUT / (name + '.png')).stat().st_size > 15000, 'Empty screenshot: ' + name

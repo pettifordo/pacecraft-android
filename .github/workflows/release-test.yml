@@ -20,11 +20,14 @@ jobs:
         run: ./gradlew :engine:test :app:lintDebug :app:assembleDebug
       - name: Prepare test download
         run: |
+          version=$(sed -nE 's/.*versionName = "([^"]+)".*/\1/p' app/build.gradle.kts)
+          test -n "$version"
+          echo "TEST_VERSION=$version" >> "$GITHUB_ENV"
           mkdir artifacts
-          cp app/build/outputs/apk/debug/app-debug.apk artifacts/pacecraft-0.1.0-test.apk
+          cp app/build/outputs/apk/debug/app-debug.apk "artifacts/pacecraft-$version-test.apk"
           cd artifacts
-          sha256sum pacecraft-0.1.0-test.apk > pacecraft-0.1.0-test.apk.sha256
+          sha256sum "pacecraft-$version-test.apk" > "pacecraft-$version-test.apk.sha256"
       - name: Publish prerelease
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create v0.1.0-test artifacts/* --target "$GITHUB_SHA" --title 'Pacecraft Android 0.1.0 — test APK' --prerelease --notes-file docs/RELEASE_NOTES.md
+        run: gh release create "v$TEST_VERSION-test" artifacts/* --target "$GITHUB_SHA" --title "Pacecraft Android $TEST_VERSION — test APK" --prerelease --notes-file docs/RELEASE_NOTES.md

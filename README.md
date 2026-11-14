@@ -4,7 +4,7 @@ An on-device running coach for Android, adapted from [pettifordo/pacecraft](http
 
 ## Try the APK
 
-Download `pacecraft-0.1.0-test.apk` from this repository's Releases and send the file to your tester. On their Android phone, open the downloaded file, allow **Install unknown apps** for the app opening it if prompted, and install Pacecraft. Android 9 or later is required. The test APK is signed with a development key and is not a Google Play release.
+Download `pacecraft-0.1.1-test.apk` from this repository's Releases and send the file to your tester. On their Android phone, open the downloaded file, allow **Install unknown apps** for the app opening it if prompted, and install Pacecraft. Android 9 or later is required. The test APK is signed with a development key and is not a Google Play release.
 
 Start with **Explore with sample history** to inspect all four tabs without granting access. Demo history is isolated from real history and edits are disabled while it is active. Exit demo before connecting data or editing settings.
 
@@ -40,3 +40,11 @@ APK: `app/build/outputs/apk/debug/app-debug.apk`. CI builds are downloadable und
 - `docs/PLAY_RELEASE.md`: publishing later using `pettifordo@gmail.com`.
 
 This is an initial Android testing release, not a claim of complete iOS feature parity. Read the porting notes before comparing prescriptions across platforms. Real-device Health Connect interoperability and coaching calibration need tester feedback.
+
+## Emulator screenshots
+
+[View the five actual Android screenshots](docs/screenshots) captured on a standard Android 15 emulator with demo history. The [emulator workflow](.github/workflows/screenshots.yml) exercises all four tabs and verifies that demo history does not enter the real local cache. It can be rerun from Actions.
+
+| Next run | Progress |
+| --- | --- |
+| ![Next run](docs/screenshots/next-run.png) | ![Progress](docs/screenshots/progress.png) |

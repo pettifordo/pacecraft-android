@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.SystemBarStyle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.health.connect.client.HealthConnectClient
@@ -46,7 +47,7 @@ class MainActivity: ComponentActivity() {
     private val model: CoachViewModel by viewModels()
     private val permissionLauncher = registerForActivityResult(PermissionController.createRequestPermissionResultContract()) { model.refresh() }
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState); enableEdgeToEdge()
+        super.onCreate(savedInstanceState); enableEdgeToEdge(statusBarStyle=SystemBarStyle.dark(android.graphics.Color.TRANSPARENT), navigationBarStyle=SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
         setContent { PacecraftTheme { PacecraftApp(model,::connect) } }
     }
     private fun connect() {
@@ -205,7 +206,7 @@ class PrivacyActivity: ComponentActivity() {
         Eyebrow(if(p.beyondEvidence) "Race hypothesis · beyond evidence" else "Current race estimate")
         Text(Display.time(p.seconds),fontSize=52.sp,fontWeight=FontWeight.Bold,letterSpacing=(-2).sp)
         Text("80% band · ${Display.time(p.low)} – ${Display.time(p.high)}",color=Muted)
-        Text("${f.confidence.name.lowercase().replaceFirstChar { it.uppercase() }} confidence · ${f.effortCount} frontier efforts",color=Lime,fontSize=13.sp)
+        Text("${f.confidence.name.lowercase().replaceFirstChar { it.uppercase() }} confidence · ${f.effortCount} frontier ${if(f.effortCount == 1) "effort" else "efforts"}",color=Lime,fontSize=13.sp)
         m.saved.goal.targetSeconds?.let { Text("Target ${Display.time(it)} · ${if(p.seconds<=it) "currently supported" else "ahead of current estimate"}",color=Muted) }
     }
     Panel {
