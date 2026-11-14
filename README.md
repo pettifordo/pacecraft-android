@@ -4,7 +4,7 @@ An on-device running coach for Android, adapted from [pettifordo/pacecraft](http
 
 ## Try the APK
 
-Download `CoachMeSimple-0.2.1-test.apk` from this repository's Releases and send the file to your tester. On their Android phone, open the downloaded file, allow **Install unknown apps** for the app opening it if prompted, and install CoachMeSimple. Android 9 or later is required. The test APK is signed with a development key and is not a Google Play release.
+[Download CoachMeSimple 0.2.1 APK](https://github.com/pettifordo/pacecraft-android/releases/download/v0.2.1-test/CoachMeSimple-0.2.1-test.apk) and send the file to your tester. On their Android phone, open the downloaded file, allow **Install unknown apps** for the app opening it if prompted, and install CoachMeSimple. Android 9 or later is required. The test APK is signed with a development key and is not a Google Play release.
 
 Start with **Explore with sample history** to inspect all five tabs without granting access. Demo history is isolated from real history and edits are disabled while it is active. Exit demo before connecting data or editing settings.
 
@@ -46,6 +46,6 @@ This is an initial Android testing release, not a claim of complete iOS feature 
 
 [View the actual Android screenshots](docs/screenshots) captured on a standard Android 15 emulator with demo history. The [emulator workflow](.github/workflows/screenshots.yml) exercises all five tabs and verifies that demo history does not enter the real local cache. It can be rerun from Actions.
 
-| Next run | Progress |
+| Whole plan | Expanded week |
 | --- | --- |
-| ![Next run](docs/screenshots/next-run.png) | ![Progress](docs/screenshots/progress.png) |
+| ![Whole plan](docs/screenshots/plan.png) | ![Expanded week](docs/screenshots/plan-week.png) |
