@@ -24,10 +24,10 @@ jobs:
           test -n "$version"
           echo "TEST_VERSION=$version" >> "$GITHUB_ENV"
           mkdir artifacts
-          cp app/build/outputs/apk/debug/app-debug.apk "artifacts/pacecraft-$version-test.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "artifacts/CoachMeSimple-$version-test.apk"
           cd artifacts
-          sha256sum "pacecraft-$version-test.apk" > "pacecraft-$version-test.apk.sha256"
+          sha256sum "CoachMeSimple-$version-test.apk" > "CoachMeSimple-$version-test.apk.sha256"
       - name: Publish prerelease
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "v$TEST_VERSION-test" artifacts/* --target "$GITHUB_SHA" --title "Pacecraft Android $TEST_VERSION — test APK" --prerelease --notes-file docs/RELEASE_NOTES.md
+        run: gh release create "v$TEST_VERSION-test" artifacts/* --target "$GITHUB_SHA" --title "CoachMeSimple Android $TEST_VERSION — test APK" --prerelease --notes-file docs/RELEASE_NOTES.md

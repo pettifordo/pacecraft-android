@@ -118,7 +118,7 @@ private fun parseTime(text: String): Double? {
         TextButton(onClick={context.startActivity(Intent(context,PrivacyActivity::class.java))}) { Text("Privacy & how data is used") }
         TextButton(onClick={m.showDemo(!m.demo);close()}) { Text(if(m.demo) "Exit sample history" else "Explore sample history") }
         TextButton(onClick={erase=true}) { Text("Clear all local data",color=MaterialTheme.colorScheme.error) }
-        Text("Pacecraft ${BuildConfig.VERSION_NAME} · test build\n${ENGINE_VERSION}",color=Muted,style=MaterialTheme.typography.labelSmall)
+        Text("CoachMeSimple ${BuildConfig.VERSION_NAME} · test build\n${ENGINE_VERSION}",color=Muted,style=MaterialTheme.typography.labelSmall)
         error?.let { Text(it,color=MaterialTheme.colorScheme.error) }
     }},confirmButton={TextButton(onClick={
         val w=weekly.toDoubleOrNull(); val mins=minutes.toIntOrNull(); val year=birth.toIntOrNull(); val rest=resting.toDoubleOrNull(); val hr=maxHr.toDoubleOrNull()
@@ -131,6 +131,6 @@ private fun parseTime(text: String): Double? {
             else -> null }
         if(error==null) { m.saveConstraints(Constraints(sessions.toInt(),intensity.toInt(),blocked,longDay=longDay,maxWeekly=w?.times(1000),maxMinutes=mins,treadmillOnly=treadmill),imperial,Profile(year,rest,hr,merge));close() }
     },enabled=!m.demo) { Text("Save settings") }},dismissButton={TextButton(onClick=close) { Text("Close") }})
-    if(erase) AlertDialog(onDismissRequest={erase=false},title={Text("Clear local Pacecraft data?")},text={Text("Deletes cached runs, manual runs, feedback, goals and preferences from this phone. Health Connect originals are untouched.")},
+    if(erase) AlertDialog(onDismissRequest={erase=false},title={Text("Clear local CoachMeSimple data?")},text={Text("Deletes cached runs, manual runs, feedback, goals and preferences from this phone. Health Connect originals are untouched.")},
         confirmButton={TextButton(onClick={m.erase();erase=false;close()}) { Text("Clear data") }},dismissButton={TextButton(onClick={erase=false}) { Text("Cancel") }})
 }

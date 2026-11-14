@@ -11,4 +11,4 @@ Intended owner account: **pettifordo@gmail.com**. No Google account credentials 
 7. Test the signed bundle on an internal/closed track. Follow the testing requirements displayed for this developer account before requesting production access. Complete content rating, screenshots, store listing, support contact and release notes.
 8. Test first-run permissions, denied/revoked/partial access, missing provider, cross-vendor workout data, offline operation, daylight-saving dates, accessibility/large text, upgrades and data deletion on real phones before widening the rollout.
 
-A Play-signed production build may require uninstalling this debug-signed test app first. This clears local Pacecraft data; health originals can be imported again. A proper upgrade path requires consistent production signing from the first release.
+A Play-signed production build may require uninstalling this debug-signed test app first. This clears local CoachMeSimple data; health originals can be imported again. A proper upgrade path requires consistent production signing from the first release.

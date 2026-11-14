@@ -39,7 +39,7 @@ val Surface = Color(0xFF1B241E)
 val Lime = Color(0xFFD4F76A)
 val Muted = Color(0xFFA4B2A6)
 val Cream = Color(0xFFF1F5EC)
-@Composable fun PacecraftTheme(content: @Composable ()->Unit) {
+@Composable fun CoachMeSimpleTheme(content: @Composable ()->Unit) {
     MaterialTheme(colorScheme=darkColorScheme(primary=Lime,onPrimary=Ink,background=Ink,surface=Surface,onSurface=Cream,
         onBackground=Cream,secondary=Color(0xFF9FCEC1),outline=Color(0xFF4A584C)),content=content)
 }
@@ -48,7 +48,7 @@ class MainActivity: ComponentActivity() {
     private val permissionLauncher = registerForActivityResult(PermissionController.createRequestPermissionResultContract()) { model.refresh() }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState); enableEdgeToEdge(statusBarStyle=SystemBarStyle.dark(android.graphics.Color.TRANSPARENT), navigationBarStyle=SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
-        setContent { PacecraftTheme { PacecraftApp(model,::connect) } }
+        setContent { CoachMeSimpleTheme { CoachMeSimpleApp(model,::connect) } }
     }
     private fun connect() {
         when(model.health.status()) {
@@ -65,21 +65,21 @@ class MainActivity: ComponentActivity() {
 class PrivacyActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { PacecraftTheme { Surface(Modifier.fillMaxSize()) {
+        setContent { CoachMeSimpleTheme { Surface(Modifier.fillMaxSize()) {
             Column(Modifier.safeDrawingPadding().padding(24.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(20.dp)) {
                 Text("Your runs. Your device.",style=MaterialTheme.typography.headlineLarge,fontWeight=FontWeight.Bold)
                 if(intent.getBooleanExtra("unavailable",false)) Text("Health Connect is unavailable on this device. You can still add runs manually or explore the demo.")
-                Text("Pacecraft reads exercise sessions and distance to understand your running history. Optional heart rate and elevation help assess effort. History access allows up to 26 weeks of data, instead of the default limited window.")
+                Text("CoachMeSimple reads exercise sessions and distance to understand your running history. Optional heart rate and elevation help assess effort. History access allows up to 26 weeks of data, instead of the default limited window.")
                 Text("Your data is stored only on this phone. There is no account, advertising, analytics, AI service or app network permission. Android cloud backup is disabled. Health Connect controls the data supplied by your recording apps.")
                 Text("You can revoke access in Health Connect. When the app checks permissions again, it removes its imported cache if exercise or distance permission is missing. Clear local data in Settings to delete all cached runs, feedback and preferences. This does not delete the original health records.")
                 Text("The coach uses deterministic rules. Training estimates are uncertain and are not medical advice. Stop and seek appropriate advice if you have pain or feel unwell.")
                 Text("Testing build · ${BuildConfig.VERSION_NAME}",color=Muted)
-                Button(onClick={finish()}) { Text("Back to Pacecraft") }
+                Button(onClick={finish()}) { Text("Back to CoachMeSimple") }
             }
         } } }
     }
 }
-@Composable fun PacecraftApp(model: CoachViewModel, connect: ()->Unit) {
+@Composable fun CoachMeSimpleApp(model: CoachViewModel, connect: ()->Unit) {
     var tab by remember { mutableIntStateOf(0) }
     var dialog by remember { mutableStateOf<String?>(null) }
     val pageScroll = rememberScrollState()
@@ -102,7 +102,7 @@ class PrivacyActivity: ComponentActivity() {
         Column(Modifier.fillMaxSize().padding(padding).padding(horizontal=22.dp).verticalScroll(pageScroll),verticalArrangement=Arrangement.spacedBy(18.dp)) {
             Row(Modifier.fillMaxWidth().padding(top=10.dp),verticalAlignment=Alignment.CenterVertically) {
                 Icon(Icons.Default.PlayArrow,null,tint=Lime,modifier=Modifier.size(27.dp)); Spacer(Modifier.width(8.dp))
-                Text("pacecraft",fontSize=25.sp,fontWeight=FontWeight.Bold,letterSpacing=(-1).sp,modifier=Modifier.weight(1f))
+                Text("CoachMeSimple",fontSize=25.sp,fontWeight=FontWeight.Bold,letterSpacing=(-1).sp,modifier=Modifier.weight(1f))
                 IconButton(onClick={dialog="settings"}) { Icon(Icons.Default.Settings,"Settings",tint=Muted) }
             }
             if(model.demo) Row(Modifier.fillMaxWidth().background(Lime.copy(alpha=.13f),RoundedCornerShape(12.dp)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
@@ -248,7 +248,7 @@ class PrivacyActivity: ComponentActivity() {
         OutlinedButton(onClick=add,enabled=!m.demo,modifier=Modifier.weight(1f)) { Text("Add run") }
     }
     Text(m.saved.lastSync?.let { "Last import · ${it.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("d MMM, HH:mm"))}" } ?: "No Health Connect import yet",color=Muted,fontSize=12.sp)
-    if(runs.isEmpty()) Panel { Text("No runs yet",fontWeight=FontWeight.Bold); Text("Connect your recording app to Health Connect, then allow Pacecraft to read exercise and distance.",color=Muted); TextButton(onClick=connect) { Text("Set up Health Connect") } }
+    if(runs.isEmpty()) Panel { Text("No runs yet",fontWeight=FontWeight.Bold); Text("Connect your recording app to Health Connect, then allow CoachMeSimple to read exercise and distance.",color=Muted); TextButton(onClick=connect) { Text("Set up Health Connect") } }
     runs.sortedByDescending { it.start }.forEach { run ->
         Row(Modifier.fillMaxWidth().clickable { selected=run }.background(Surface,RoundedCornerShape(16.dp)).padding(16.dp),verticalAlignment=Alignment.CenterVertically) {
             Icon(Icons.Default.PlayArrow,null,tint=Lime,modifier=Modifier.padding(end=14.dp))

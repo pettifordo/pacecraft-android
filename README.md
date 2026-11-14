@@ -1,14 +1,14 @@
-# Pacecraft for Android
+# CoachMeSimple for Android
 
 An on-device running coach for Android, adapted from [pettifordo/pacecraft](https://github.com/pettifordo/pacecraft). Native Kotlin + Jetpack Compose. The deterministic training engine and run history are the product; coaching comments use local rules, with no AI dependency.
 
 ## Try the APK
 
-Download `pacecraft-0.2.0-test.apk` from this repository's Releases and send the file to your tester. On their Android phone, open the downloaded file, allow **Install unknown apps** for the app opening it if prompted, and install Pacecraft. Android 9 or later is required. The test APK is signed with a development key and is not a Google Play release.
+Download `CoachMeSimple-0.2.1-test.apk` from this repository's Releases and send the file to your tester. On their Android phone, open the downloaded file, allow **Install unknown apps** for the app opening it if prompted, and install CoachMeSimple. Android 9 or later is required. The test APK is signed with a development key and is not a Google Play release.
 
 Start with **Explore with sample history** to inspect all five tabs without granting access. Demo history is isolated from real history and edits are disabled while it is active. Exit demo before connecting data or editing settings.
 
-For real data, install/update Health Connect where needed, enable sharing from the watch/recording app into Health Connect, and allow Pacecraft to read **exercise sessions and distance**. Heart rate and elevation are optional. On supported devices, allow **history** access to import the 26-week window. Without that permission, the platform may only expose the 30 days before first permission grant plus subsequent records; Pacecraft will not invent missing history. Manual run entry works independently of Health Connect.
+For real data, install/update Health Connect where needed, enable sharing from the watch/recording app into Health Connect, and allow CoachMeSimple to read **exercise sessions and distance**. Heart rate and elevation are optional. On supported devices, allow **history** access to import the 26-week window. Without that permission, the platform may only expose the 30 days before first permission grant plus subsequent records; CoachMeSimple will not invent missing history. Manual run entry works independently of Health Connect.
 
 ## Implemented
 
