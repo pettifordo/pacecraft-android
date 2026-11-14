@@ -40,7 +40,7 @@ class CoachViewModel(application: Application): AndroidViewModel(application) {
         replanTime = now
         projectionJob?.cancel(); projectionGeneration++; projecting=false; fullPlan=null
         val runs = if(demo) demoRuns else saved.runs
-        val reconciled = CoachingEngine.reconcile(saved.records,runs,zone)
+        val reconciled = CoachingEngine.reconcile(saved.records,Cleaner.clean(runs,zone,saved.profile.mergeDuplicates,allowRunWalk=saved.starter!=null),zone)
         val raw = CoachingEngine.replan(runs,effectiveGoal,saved.constraints,saved.trainingProfile(now),reconciled,saved.feedback,
             if(demo) emptyList() else saved.cross,now,zone,starter=if(demo) null else saved.starter)
         val override=saved.override?.takeIf{saved.overrideBase==raw.next?.id && !demo}

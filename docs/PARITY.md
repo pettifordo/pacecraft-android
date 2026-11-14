@@ -21,6 +21,6 @@ Platform substitutions: Health Connect replaces HealthKit; Wear OS companion rep
 
 Publication still requires the owner's Play Console enrolment/verification, production signing, policy declarations and real-phone/watch testing. Account intended for publication: pettifordo@gmail.com.
 
-Verification: 63 pure-engine tests, 2 phone transfer-contract tests and 2 watch state tests pass locally. Phone and watch APKs compile and pass Android lint. Updated phone/Wear emulator checks are pending their workflow runs; their smoke records will be saved beside the actual screenshots.
+Verification: 64 pure-engine tests, 2 phone transfer-contract tests and 3 watch state/GPS tests pass locally. Phone and watch APKs compile and pass Android lint. Updated phone/Wear emulator checks are pending their workflow runs; their smoke records will be saved beside the actual screenshots.
 
 Required hardware checks before a production claim: real Health Connect writers (Fitbit/Samsung Health), denied/partial/background permissions, physical paired-watch delivery and return, GPS/HR accuracy, reconnect/process-death behaviour on actual watches, and battery consumption. The Android planner implements the same policy in a smaller model; exact Swift prescription parity remains unproven. Routes/splits/pause-event reconstruction, phone GPS recording, Android Auto/Assistant and cross-platform cloud sync are outside this release. See [porting notes](PORTING.md).

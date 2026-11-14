@@ -88,6 +88,15 @@ class ParityTest {
         assertEquals(1,progress.adherence.planned);assertEquals(0,progress.adherence.completed)
         assertEquals(Track.DRIFTING,progress.status);assertTrue(progress.causes.isNotEmpty());assertTrue(progress.options.isNotEmpty())
     }
+    @Test fun removedHistoryCannotRemainMatchedAndOlderImportsAreNotAdherence(){
+        val session=Session("due",today.minusDays(2),Kind.EASY,Phase.BASE,Planner.structure(Kind.EASY,5000.0,f,Phase.BASE),30000.0,emptyList())
+        val removed=SessionRecord(session,runId="hc:deleted")
+        assertNull(CoachingEngine.reconcile(listOf(removed),emptyList(),zone).single().runId)
+        val p=Predictor.predict(10000.0,f,12000.0,30000.0);val load=LoadModel.evaluate(history,emptyList(),f,Profile(),now,zone)
+        val older=history.filter{it.day(zone)<session.day}
+        val progress=ProgressAnalysis.evaluate(goal,p,load,listOf(SessionRecord(session)),older,f,now,zone)
+        assertEquals(0.0,progress.adherence.volumeRatio!!,.001)
+    }
     @Test fun optionalCrossTrainingAndBaselineSignalsAffectFatigueNotRunMileage(){
         val cross=listOf(CrossTraining("cycle",now.minusSeconds(3600),7200.0))
         val yes=CoachingEngine.replan(history,goal,crossTraining=cross,now=now,zone=zone)

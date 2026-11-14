@@ -77,13 +77,15 @@ class RunService:Service(),LocationListener,SensorEventListener {
     private fun stopSensors(){locations.removeUpdates(this);sensors.unregisterListener(this);lastLocation=null;wake?.let{if(it.isHeld)it.release()};wake=null}
     override fun onLocationChanged(location:Location){
         val s=state?:return;if(s.paused||!location.hasAccuracy()||location.accuracy>30||SystemClock.elapsedRealtimeNanos()-location.elapsedRealtimeNanos>15_000_000_000)return
-        val previous=lastLocation;var distance=s.metres
+        val speed=location.speed.toDouble().takeIf{location.hasSpeed()&&it in .0..12.0}
+        val previous=lastLocation;var distance=s.metres;var accepted=false
         if(previous!=null){val dt=(location.elapsedRealtimeNanos-previous.elapsedRealtimeNanos)/1e9;val d=previous.distanceTo(location).toDouble()
-            if(dt>0&&dt<=30&&d<=dt*12 && d>=1.5)distance+=d
+            accepted=DistanceFilter.accept(d,dt,maxOf(previous.accuracy,location.accuracy).toDouble(),speed)
+            if(accepted)distance+=d
+            if(dt>30||speed!=null&&speed<.4)lastLocation=location
         }
-        lastLocation=location
-        val speed=location.speed.toDouble().takeIf{location.hasSpeed()&&it in .3..12.0}
-        state=s.copy(metres=distance,speed=speed,gps=true);publish()
+        if(previous==null||accepted)lastLocation=location
+        state=s.copy(metres=distance,speed=speed?.takeIf{it>=.3},gps=true);publish()
     }
     override fun onSensorChanged(event:SensorEvent){val s=state?:return;if(s.paused)return;val hr=event.values.firstOrNull()?.toDouble()?:return
         if(hr in 25.0..240.0)state=s.copy(hrTotal=s.hrTotal+hr,hrCount=s.hrCount+1)

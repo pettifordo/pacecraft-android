@@ -45,7 +45,8 @@ object WearInbox {
         directory(c).listFiles()?.filter{it.extension=="json"}?.forEach{file ->
             val r=CompletedWorkout.decode(file.readText())
             val run=Run("wear:${r.id}",r.start,r.metres,r.seconds,r.heartRate,source="CoachMeSimple Wear OS")
-            LocalStore(c).update { state -> if(state.runs.any{it.id==run.id}) state else state.copy(runs=state.runs+run).also{added++} }
+            LocalStore(c).update { state -> if(state.runs.any{it.id==run.id}) state else state.copy(runs=state.runs+run,
+                records=state.records.map{if(it.session.id==r.workoutId && it.runId==null && !it.skipped)it.copy(runId=run.id)else it}).also{added++} }
             file.delete()
         };added
     }

@@ -62,7 +62,8 @@ def capture(name, top=True):
 def save_diagnostics():
     if not (OUT/'smoke-test.txt').exists():
         try:
-            (OUT/'failure-ui.xml').write_text(adb('shell','uiautomator','dump','/dev/tty'))
+            nodes()
+            (OUT/'failure-ui.xml').write_text(adb('shell','cat','/data/local/tmp/pacecraft-ui.xml'))
             (OUT/'failure-logcat.txt').write_text(adb('logcat','-d','-t','1500'))
             capture('failure',top=False)
         except Exception as e:
@@ -141,6 +142,22 @@ tap('Adjust length, pace or day')
 wait_for('Adjust this session')
 capture('session-adjustment',top=False)
 tap('Cancel')
+# Exercise Android FileProvider sharing and inspect the generated private files.
+tap('Plan')
+wait_for('Share plan PDF')
+tap('Share plan PDF')
+time.sleep(2)
+adb('shell','input','keyevent','KEYCODE_BACK')
+pdf=subprocess.check_output(['adb','exec-out','run-as','com.pacecraft.android','cat','cache/exports/CoachMeSimple-plan.pdf'])
+assert pdf.startswith(b'%PDF') and len(pdf)>1000
+scroll_to('Next week → calendar')
+tap('Next week → calendar')
+time.sleep(2)
+adb('shell','input','keyevent','KEYCODE_BACK')
+calendar=adb('exec-out','run-as','com.pacecraft.android','cat','cache/exports/CoachMeSimple-next-week.ics')
+assert 'BEGIN:VCALENDAR' in calendar and 'BEGIN:VEVENT' in calendar and 'DESCRIPTION:' in calendar
+assert all(len(line.encode('utf-8'))<=75 for line in calendar.splitlines())
+tap('Next run')
 # Relaunch confirms persistence; a completed watch inbox record must import once.
 stored=json.loads(adb('exec-out','run-as','com.pacecraft.android','cat','files/pacecraft-v1.json'))
 assert stored['starter']['ability']=='JOG5' and stored['runs']==[]
@@ -164,6 +181,6 @@ path.unlink()
 (OUT / 'smoke-test.txt').write_text(
     'PASS: installed APK, onboarding, demo entry, next-run screen, full-plan projection with prescribed paces, interval reps and recovery paces, progress, history, coach, '
     'demo isolation in local persistence, demo exit, empty real history.\n'
-    'PASS: starter onboarding, run/walk steps, adjustment preview, persistence and exactly-once completed-watch-run inbox import.\n'
+    'PASS: PDF/calendar sharing, starter onboarding, run/walk steps, adjustment preview, persistence and exactly-once completed-watch-run inbox import.\n'
     'Images are unedited screencap output from the running native app.\n')
 print('All emulator screenshot and smoke checks passed.')

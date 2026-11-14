@@ -10,6 +10,14 @@ class WorkoutStateTest {
         assertEquals(1,s.copy(elapsed=600.0).stepIndex);assertEquals(180.0,s.copy(elapsed=600.0).remaining,.001)
         assertEquals(2,s.copy(elapsed=780.0).stepIndex);assertEquals(0.0,s.copy(elapsed=901.0).remaining,.001)
     }
+    @Test fun gpsRejectsStationaryJitterJumpsAndGaps(){
+        assertFalse(DistanceFilter.accept(4.0,2.0,10.0,0.0))
+        assertFalse(DistanceFilter.accept(250.0,2.0,10.0,3.0))
+        assertFalse(DistanceFilter.accept(50.0,40.0,10.0,3.0))
+        assertFalse(DistanceFilter.accept(4.0,2.0,10.0,null))
+        assertTrue(DistanceFilter.accept(6.0,2.0,10.0,3.0))
+        assertTrue(DistanceFilter.accept(15.0,6.0,10.0,null))
+    }
     @Test fun durableSnapshotKeepsFrozenWorkoutAndMeasuredDistance(){
         val s=RunSnapshot("test",w,"2026-11-16T09:00:00Z",elapsed=123.0,metres=456.0,paused=true,hrTotal=300.0,hrCount=2)
         val restored=RunSnapshot.decode(s.encode());assertEquals(s,restored);assertEquals(150.0,restored.averageHr!!,.001)

@@ -28,7 +28,7 @@ def capture(name):
     adb('shell','screencap','-p','/data/local/tmp/watch.png');adb('pull','/data/local/tmp/watch.png',str(OUT/(name+'.png')))
 def diagnostics():
     if not (OUT/'smoke-test.txt').exists():
-        try:capture('failure');(OUT/'failure-logcat.txt').write_text(adb('logcat','-d','-t','1500'));(OUT/'failure-ui.xml').write_text(adb('shell','uiautomator','dump','/dev/tty'))
+        try:capture('failure');(OUT/'failure-logcat.txt').write_text(adb('logcat','-d','-t','1500'));nodes();(OUT/'failure-ui.xml').write_text(adb('shell','cat','/data/local/tmp/watch-ui.xml'))
         except Exception as e:print(e)
 atexit.register(diagnostics)
 adb('install','--no-streaming','-r','wear/build/outputs/apk/debug/wear-debug.apk')
@@ -53,7 +53,9 @@ for _ in range(4):adb('shell','input','swipe','220','130','220','330','250')
 assert find('Work 1 of 3') is not None
 capture('watch-interval')
 tap('Pause')
-assert find('Paused') is not None or '"paused":true' in adb('exec-out','run-as',PKG,'cat','shared_prefs/coach-watch.xml')
+prefs=ET.fromstring(adb('exec-out','run-as',PKG,'cat','shared_prefs/coach-watch.xml'))
+active=json.loads(prefs.find("string[@name='active']").text)
+assert active['paused'] is True
 tap('Finish run');tap('Save & finish');time.sleep(2)
 stored=adb('exec-out','run-as',PKG,'cat','shared_prefs/coach-watch.xml')
 assert 'name="active"' not in stored

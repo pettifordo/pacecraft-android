@@ -32,7 +32,9 @@ object ProgressAnalysis {
         val cutoff=now.minusSeconds(28*86400L)
         val due=records.filter { it.session.kind!=Kind.REST && it.session.day>=cutoff.atZone(zone).toLocalDate() && it.session.day<now.atZone(zone).toLocalDate() }
         val done=due.count{it.runId!=null};val quality=due.filter{it.session.kind.quality}
-        val planned=due.sumOf{it.session.distance};val actual=runs.filter{it.start>=cutoff}.sumOf{it.distance}
+        val planned=due.sumOf{it.session.distance}
+        // Imported history from before the first prescription is evidence, not adherence.
+        val actual=due.minOfOrNull{it.session.day}?.let{first->runs.filter{it.day(zone)>=first&&it.day(zone)<now.atZone(zone).toLocalDate()}.sumOf{it.distance}}?:0.0
         val adherence=Adherence(done,due.size,if(planned>0) actual/planned else null,if(quality.isNotEmpty()) quality.count{it.runId!=null}.toDouble()/quality.size else null)
         val target=goal.targetSeconds;val baseline=goal.baselineSeconds;val race=goal.raceDate
         if(target==null || baseline==null || race==null) return Progress(Track.ON_TRACK,prediction.seconds,prediction.seconds,0.0,emptyList(),emptyList(),adherence)

@@ -264,8 +264,10 @@ object CoachingEngine {
         return Result(runs,suff,f,load,prediction,next,comments.distinct())
     }
     fun reconcile(records: List<SessionRecord>, runs: List<Run>, zone: ZoneId): List<SessionRecord> {
-        val used = records.mapNotNull { it.runId }.toMutableSet()
-        return records.map { rec ->
+        val ids=runs.map{it.id}.toSet()
+        val present=records.map{if(it.runId!=null && it.runId !in ids)it.copy(runId=null)else it}
+        val used = present.mapNotNull { it.runId }.toMutableSet()
+        return present.map { rec ->
             if(rec.skipped || rec.runId != null || rec.session.kind == Kind.REST) rec else {
                 val match = runs.filter { it.id !in used && it.day(zone) == rec.session.day }
                     .minByOrNull { abs(it.distance - rec.session.distance) }
