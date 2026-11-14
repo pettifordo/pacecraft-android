@@ -93,8 +93,8 @@ class PrivacyActivity: ComponentActivity() {
     LaunchedEffect(model.message) { model.message?.let { snackbar.showSnackbar(it,duration=SnackbarDuration.Long); model.clearMessage() } }
     Scaffold(containerColor=Ink,snackbarHost={SnackbarHost(snackbar)},bottomBar={
         NavigationBar(containerColor=Ink,tonalElevation=0.dp) {
-            val labels=listOf("Next run","Progress","History","Coach")
-            val icons=listOf(Icons.Default.PlayArrow,Icons.Default.Star,Icons.Default.DateRange,Icons.Default.Email)
+            val labels=listOf("Next run","Plan","Progress","History","Coach")
+            val icons=listOf(Icons.Default.PlayArrow,Icons.Default.DateRange,Icons.Default.Star,Icons.Default.List,Icons.Default.Email)
             labels.forEachIndexed { i,label -> NavigationBarItem(selected=tab==i,onClick={tab=i},icon={Icon(icons[i],label)},label={Text(label)},
                 colors=NavigationBarItemDefaults.colors(selectedIconColor=Ink,indicatorColor=Lime,selectedTextColor=Lime,unselectedIconColor=Muted,unselectedTextColor=Muted)) }
         }
@@ -111,10 +111,11 @@ class PrivacyActivity: ComponentActivity() {
             }
             if(model.busy) LinearProgressIndicator(Modifier.fillMaxWidth(),color=Lime)
             when(tab) {
-                0 -> NextScreen(model,{dialog=it},connect)
-                1 -> ProgressScreen(model)
-                2 -> HistoryScreen(model,{dialog="run"},connect)
-                3 -> CoachScreen(model,{dialog="feedback"})
+                0 -> NextScreen(model,{dialog=it},connect,{tab=1})
+                1 -> FullPlanScreen(model,{dialog="goal"})
+                2 -> ProgressScreen(model)
+                3 -> HistoryScreen(model,{dialog="run"},connect)
+                4 -> CoachScreen(model,{dialog="feedback"})
             }
             Spacer(Modifier.height(16.dp))
         }
@@ -134,7 +135,7 @@ class PrivacyActivity: ComponentActivity() {
     Column(modifier.fillMaxWidth().background(Surface,RoundedCornerShape(22.dp)).padding(20.dp),verticalArrangement=Arrangement.spacedBy(14.dp),content=content)
 }
 @Composable fun Stat(label: String, value: String, modifier: Modifier=Modifier) { Column(modifier,verticalArrangement=Arrangement.spacedBy(5.dp)) { Text(value,fontSize=25.sp,fontWeight=FontWeight.SemiBold); Text(label,color=Muted,fontSize=12.sp) } }
-@Composable fun NextScreen(m: CoachViewModel, open: (String)->Unit, connect: ()->Unit) {
+@Composable fun NextScreen(m: CoachViewModel, open: (String)->Unit, connect: ()->Unit, viewPlan: ()->Unit) {
     val r=m.result; val next=r?.next; val imperial=m.saved.imperial; val unit=if(imperial) "mi" else "km"
     Eyebrow("One run at a time")
     if(next==null) {
@@ -175,6 +176,7 @@ class PrivacyActivity: ComponentActivity() {
             }
         }
     }
+    OutlinedButton(onClick=viewPlan,modifier=Modifier.fillMaxWidth()) { Text("View whole plan →") }
     Panel { Eyebrow("Why this run"); next.reasons.forEach { Text(it,lineHeight=23.sp) } }
     if(next.steps.isNotEmpty()) Panel {
         Eyebrow("The session")
@@ -191,8 +193,8 @@ class PrivacyActivity: ComponentActivity() {
     Panel {
         Eyebrow("Your goal")
         Row(verticalAlignment=Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) { Text("${Display.distance(m.saved.goal.distance,imperial)} $unit",fontSize=22.sp,fontWeight=FontWeight.Bold)
-                Text(m.saved.goal.raceDate?.toString() ?: "Get faster · no race date",color=Muted,fontSize=13.sp) }
+            Column(Modifier.weight(1f)) { Text("${Display.distance(m.effectiveGoal.distance,imperial)} $unit",fontSize=22.sp,fontWeight=FontWeight.Bold)
+                Text(m.effectiveGoal.raceDate?.toString() ?: "Get faster · no race date",color=Muted,fontSize=13.sp) }
             TextButton(onClick={open("goal")},enabled=!m.demo) { Text("Edit") }
         }
     }

@@ -17,6 +17,18 @@ class CoachViewModel(application: Application): AndroidViewModel(application) {
     var busy by mutableStateOf(false); private set
     var message by mutableStateOf<String?>(null); private set
     var demo by mutableStateOf(false); private set
+    var fullPlan by mutableStateOf<FullPlan?>(null); private set
+    var projecting by mutableStateOf(false); private set
+    private var projectionJob: Job? = null
+    private var projectionGeneration = 0
+    private var planRequested = false
+    private var replanTime = Instant.now()
+    val effectiveGoal: Goal get() {
+        val goal = saved.goal
+        val race = goal.raceDate
+        return if(demo && (race == null || race < LocalDate.now()))
+            goal.copy(created=LocalDate.now(),raceDate=LocalDate.now().plusWeeks(12)) else goal
+    }
     private var demoRuns = emptyList<Run>()
     private var healthyStore = true
     init {
@@ -25,9 +37,11 @@ class CoachViewModel(application: Application): AndroidViewModel(application) {
     }
     private fun recalculate() {
         val now = Instant.now(); val zone = ZoneId.systemDefault()
+        replanTime = now
+        projectionJob?.cancel(); projectionGeneration++; projecting=false; fullPlan=null
         val runs = if(demo) demoRuns else saved.runs
         val reconciled = CoachingEngine.reconcile(saved.records,runs,zone)
-        val computed = CoachingEngine.replan(runs,saved.goal,saved.constraints,saved.profile,reconciled,saved.feedback,
+        val computed = CoachingEngine.replan(runs,effectiveGoal,saved.constraints,saved.profile,reconciled,saved.feedback,
             if(demo) emptyList() else saved.cross,now,zone)
         var records = reconciled
         computed.next?.let { next ->
@@ -37,6 +51,29 @@ class CoachViewModel(application: Application): AndroidViewModel(application) {
         if(!demo && healthyStore) {
             saved = saved.copy(records=records.takeLast(500))
             store.write(saved)
+        }
+        if(planRequested) ensurePlan()
+    }
+    fun ensurePlan() {
+        planRequested=true
+        val current=result ?: return
+        val fitness=current.fitness ?: return
+        val load=current.load ?: return
+        if(fullPlan!=null || projecting) return
+        val snapshot=saved; val goal=effectiveGoal; val clock=replanTime; val isDemo=demo
+        val generation=++projectionGeneration
+        projecting=true
+        projectionJob=viewModelScope.launch {
+            try {
+                val projected=withContext(Dispatchers.Default) {
+                    FullPlanProjector.project(current.runs,goal,snapshot.constraints,snapshot.profile,
+                        fitness,load,snapshot.records,snapshot.feedback,if(isDemo) emptyList() else snapshot.cross,
+                        clock,ZoneId.systemDefault())
+                }
+                if(isActive && generation==projectionGeneration) fullPlan=projected
+            } catch(e: CancellationException) { throw e }
+              catch(e: Exception) { message="Could not project the plan: ${e.message}" }
+            finally { if(generation==projectionGeneration) projecting=false }
         }
     }
     private fun change(transform: (SavedState)->SavedState) {

@@ -16,7 +16,7 @@ The Android planner is a smaller implementation of the same policy, not a line-f
 
 Current differences/gaps:
 
-- No hills, strides or progression session families; intervals use three-minute repeats, and threshold uses a bounded continuous block. The full Swift template ladder, session tweaks, full-plan projection and diary export are not ported.
+- No hills, strides or progression session families; intervals use three-minute repeats, and threshold uses a bounded continuous block. The full Swift template ladder, session tweaks and diary export are not ported.
 - Completed long runs can be inferred from distance, and recent hard runs from pace, when there is no recorded matched prescription. Matching is same-day and within 30% distance (minimum 1 km tolerance). This is an initial reconciliation policy and needs testing against real watch data.
 - Return-to-training budget uses a simpler layoff reduction. Goal-time comments compare the current estimate to the target; the full Swift feasibility and trajectory model is not yet ported. Goal time never forces unsafe training.
 - The source's resting-HR/HRV deviation signals are not ingested. The optional heart-rate profile supports maximal-effort classification and TRIMP, not illness detection.
@@ -26,3 +26,9 @@ Current differences/gaps:
 - A sufficient history still needs usable outdoor efforts to fit fitness; treadmill-only history is retained for load/history but cannot anchor race estimates. The original bootstrap questionnaire is not ported.
 
 Future work should port additional Swift regression fixtures before claiming prescription parity, then validate cross-vendor Health Connect data and Play Health Connect policy compliance on real devices.
+
+## Whole-plan view (Android 0.2.0)
+
+The Plan tab follows the iPhone SessionProjector model: repeatedly prescribe the next session, assume it is completed, and recalculate load before choosing the next. Fitness is held fixed, and the assumed runs stay in a separate in-memory projection. They never enter Health Connect, the local real-run cache, or the fitness fit. Only the first session is a prescription.
+
+A future race date projects through that date, capped at 210 calendar days like the iPhone. Undated or past goals show a fortnight. The week summary includes distance already recorded in the initial partial week and excludes the race from the training-volume chart. Each week expands into days; each projected session opens its steps and rationale. A race-date marker stays visible even if constraints or safety prevent a race prescription. Inputs changing invalidate the forecast, and projection work runs off the UI thread. Demo mode includes a sample twelve-week race goal without changing the real saved goal.

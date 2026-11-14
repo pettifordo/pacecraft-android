@@ -4,14 +4,15 @@ An on-device running coach for Android, adapted from [pettifordo/pacecraft](http
 
 ## Try the APK
 
-Download `pacecraft-0.1.1-test.apk` from this repository's Releases and send the file to your tester. On their Android phone, open the downloaded file, allow **Install unknown apps** for the app opening it if prompted, and install Pacecraft. Android 9 or later is required. The test APK is signed with a development key and is not a Google Play release.
+Download `pacecraft-0.2.0-test.apk` from this repository's Releases and send the file to your tester. On their Android phone, open the downloaded file, allow **Install unknown apps** for the app opening it if prompted, and install Pacecraft. Android 9 or later is required. The test APK is signed with a development key and is not a Google Play release.
 
-Start with **Explore with sample history** to inspect all four tabs without granting access. Demo history is isolated from real history and edits are disabled while it is active. Exit demo before connecting data or editing settings.
+Start with **Explore with sample history** to inspect all five tabs without granting access. Demo history is isolated from real history and edits are disabled while it is active. Exit demo before connecting data or editing settings.
 
 For real data, install/update Health Connect where needed, enable sharing from the watch/recording app into Health Connect, and allow Pacecraft to read **exercise sessions and distance**. Heart rate and elevation are optional. On supported devices, allow **history** access to import the 26-week window. Without that permission, the platform may only expose the 30 days before first permission grant plus subsequent records; Pacecraft will not invent missing history. Manual run entry works independently of Health Connect.
 
 ## Implemented
 
+- Whole-plan tab: weekly projection through race day (up to 30 weeks), expandable days and session steps, weekly training-volume chart, and a fortnight for goals without a race date. Later sessions are forecasts; they adapt after real runs and check-ins.
 - Next-run prescription, including pace bands, actual structured-step totals, reasons, skip-day and check-in actions.
 - Health Connect running and treadmill sessions, distance, optional heart rate/elevation, plus supported cycling/swimming/rowing/strength cross-training for load.
 - Paginated 26-week import, source-scoped aggregates, duplicate-run cleaning, refresh on foreground, manual history and run detail.
@@ -43,7 +44,7 @@ This is an initial Android testing release, not a claim of complete iOS feature 
 
 ## Emulator screenshots
 
-[View the five actual Android screenshots](docs/screenshots) captured on a standard Android 15 emulator with demo history. The [emulator workflow](.github/workflows/screenshots.yml) exercises all four tabs and verifies that demo history does not enter the real local cache. It can be rerun from Actions.
+[View the actual Android screenshots](docs/screenshots) captured on a standard Android 15 emulator with demo history. The [emulator workflow](.github/workflows/screenshots.yml) exercises all five tabs and verifies that demo history does not enter the real local cache. It can be rerun from Actions.
 
 | Next run | Progress |
 | --- | --- |

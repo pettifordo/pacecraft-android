@@ -38,8 +38,18 @@ def tap(label, prefix=False):
     adb('shell', 'input', 'tap', str((x1+x2)//2), str((y1+y2)//2))
     time.sleep(1)
 
-def capture(name):
-    adb('shell', 'input', 'swipe', '540', '350', '540', '1550', '300')
+def scroll_to(label, prefix=False, bottom=True):
+    for _ in range(12):
+        if find(label, prefix) is not None:
+            return
+        start,end = ('1450','450') if bottom else ('450','1450')
+        adb('shell', 'input', 'swipe', '540', start, '540', end, '300')
+        time.sleep(.5)
+    raise AssertionError('Could not scroll to: ' + label)
+
+def capture(name, top=True):
+    if top:
+        adb('shell', 'input', 'swipe', '540', '350', '540', '1550', '300')
     time.sleep(1)
     adb('shell', 'screencap', '-p', '/data/local/tmp/pacecraft.png')
     adb('pull', '/data/local/tmp/pacecraft.png', str(OUT / (name + '.png')))
@@ -62,19 +72,32 @@ tap('Explore with sample history', prefix=True)
 wait_for('DEMO', prefix=True)
 wait_for('Make this', prefix=True)
 capture('next-run')
-for label,heading,name in [('Progress','Built on','progress'), ('History','Your running','history'), ('Coach','A little context','coach')]:
+for label,heading,name in [('Plan','Your whole plan','plan'), ('Progress','Built on','progress'), ('History','Your running','history'), ('Coach','A little context','coach')]:
     tap(label)
     wait_for(heading, prefix=True)
+    if label == 'Plan':
+        wait_for('Weekly volume')
     capture(name)
 
 # Demo data must never replace or enter the real local cache.
 stored = json.loads(adb('exec-out', 'run-as', 'com.pacecraft.android', 'cat', 'files/pacecraft-v1.json'))
 assert stored['runs'] == [] and stored['cross'] == []
+tap('Plan')
+wait_for('Weekly volume')
+scroll_to('Expand all')
+tap('Expand all')
+scroll_to('Week 2', prefix=True)
+node=wait_for('Week 2', prefix=True)
+x1,y1,x2,y2=map(int,re.findall(r'\d+',node.attrib['bounds']))
+if y1>350:
+    adb('shell','input','swipe','540',str((y1+y2)//2),'540','300','300')
+capture('plan-week',top=False)
+scroll_to('Exit demo',bottom=False)
 tap('Exit demo')
 tap('History')
 wait_for('No runs yet')
 (OUT / 'smoke-test.txt').write_text(
-    'PASS: installed APK, onboarding, demo entry, next-run screen, progress, history, coach, '
+    'PASS: installed APK, onboarding, demo entry, next-run screen, full-plan projection, progress, history, coach, '
     'demo isolation in local persistence, demo exit, empty real history.\n'
     'Images are unedited screencap output from the running native app.\n')
 print('All emulator screenshot and smoke checks passed.')

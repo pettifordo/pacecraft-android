@@ -1,14 +1,11 @@
-Android testing build of Pacecraft. Download the **APK** below and send it directly to your tester.
+Pacecraft Android **0.2.0 test build** adds the whole-plan view. Download the APK below and send it to your Android tester.
 
-- Requires Android 9 or later. Allow installation from the browser/file app opening the APK when Android asks.
-- Start with **Explore with sample history**, or exit demo and connect Health Connect / enter completed runs manually.
-- Native Next run, Progress, History and Coach screens; deterministic fitness/load/planning engine; local rule-based coaching comments.
-- No account, subscription, cloud AI, analytics or app network permission.
+- **Plan tab:** the training block through race day, capped at 30 weeks like the iPhone; undated goals show two weeks ahead.
+- Weekly training-volume chart, phases/down weeks, expandable calendar weeks, and session details with steps and rationale.
+- The next run is the prescription; later entries are forecasts that adapt when your real history, goal, constraints or check-ins change. Assumed runs are kept out of real history and fitness estimation.
+- Next run, Progress, History and rule-based Coach remain available. Health Connect imports and manual run entry stay on-device.
+- Demo mode includes a twelve-week race goal to explore the full plan without changing your saved goal.
 
-Validation: 34 engine tests (including 360 goal/constraint combinations), Android lint, APK signature verification, and GitHub Actions build checks passed. Real-phone Health Connect interoperability still needs tester feedback. This is an initial port, not complete iOS prescription parity.
+Requires Android 9+. Open the APK and allow installation from the browser/file app when asked. This is a development-signed test build: uninstall an older test build first if Android reports a signing conflict. Uninstalling removes local Pacecraft data but leaves Health Connect originals untouched.
 
-See [testing instructions](https://github.com/pettifordo/pacecraft-android/blob/main/docs/TESTING.md) and [porting limitations](https://github.com/pettifordo/pacecraft-android/blob/main/docs/PORTING.md). Google Play publication and production signing are separate later steps; [release guide](https://github.com/pettifordo/pacecraft-android/blob/main/docs/PLAY_RELEASE.md) is included.
-
-This APK uses a development signing key. A future build signed with a different key requires uninstalling this one first, which clears local Pacecraft data; Health Connect originals remain intact.
-
-Version 0.1.1 improves status-bar contrast on the dark theme and corrects singular effort-count wording.
+Engine regression tests, Android lint and emulator navigation/data-isolation checks are available in Actions. Real-phone Health Connect interoperability still needs tester feedback. This remains an initial Android port; see [porting notes](https://github.com/pettifordo/pacecraft-android/blob/main/docs/PORTING.md), [testing instructions](https://github.com/pettifordo/pacecraft-android/blob/main/docs/TESTING.md), and the [Google Play release guide](https://github.com/pettifordo/pacecraft-android/blob/main/docs/PLAY_RELEASE.md).
