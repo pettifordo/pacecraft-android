@@ -38,7 +38,11 @@ def diagnostics():
 atexit.register(diagnostics)
 adb('install','--no-streaming','-r','wear/build/outputs/apk/debug/wear-debug.apk')
 adb('shell','input','keyevent','KEYCODE_WAKEUP');adb('shell','wm','dismiss-keyguard')
+adb('shell','dumpsys','battery','unplug')
 adb('shell','settings','put','system','screen_off_timeout','1800000')
+adb('shell','settings','put','secure','doze_enabled','0')
+adb('shell','input','keyevent','KEYCODE_WAKEUP')
+adb('shell','wm','dismiss-keyguard')
 for permission in ['ACTIVITY_RECOGNITION','ACCESS_FINE_LOCATION','ACCESS_COARSE_LOCATION','BODY_SENSORS','POST_NOTIFICATIONS']:
     adb('shell','pm','grant',PKG,'android.permission.'+permission)
 adb('shell','am','start','-W','-n',PKG+'/com.pacecraft.wear.WatchActivity');wait_for('Your next run, on your wrist');capture('watch-onboarding')
