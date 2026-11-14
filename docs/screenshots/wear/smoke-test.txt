@@ -1,0 +1,1 @@
+PASS: real Wear OS emulator APK install, onboarding, durable workout restore, visible Resume starts foreground tracking, automatic work-step transition, pace target, Pause, Finish, no fabricated GPS distance. Synthetic workout fixture used for UI/service testing. Physical paired transfer, GPS accuracy, heart-rate capture and watch battery behaviour require hardware testing.
